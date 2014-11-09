@@ -112,10 +112,13 @@ int PC2[] = {14, 17, 11, 24,  1,  5,
 
 void generateKey(char* key)
 {
-    for (int i = 0; i < 8; ++i) 
+    char temp[2];
+    for (int i = 0; i < 64; ++i) 
     {
-        key[i] = rand()%255;
+        sprintf(temp, "%d", rand()%2);
+        key[i] = temp[0];
     }
+    key[64] = '\0';
 }
 
 void initialPermutation(char *key, char *output)
@@ -184,21 +187,26 @@ void generateSubKeys(char *key, KeySet *keyset)
     }
 }
 
+//Block Size 64 bits
 void encryptBlock()
 {
+    //Initial Permutation
 
+    //Inverse Initial Permutation
 }
 
 int main()
 {
     KeySet keyset[16];
-    char key[65] = "1100110011001010101010110100101010101010010100101010101010101001";
+    char key[65];// = "1100110011001010101010110100101010101010010100101010101010011001";
+    generateKey(key);
+    printf("%s\n", key);
     generateSubKeys(key, keyset);
     for (int i = 0; i < 16; ++i)
     {
         for (int j = 0; j < 48; ++j)
         {
-            printf ("%c ", keyset[i].k[j]);
+            printf ("%d ", keyset[i].k[j] - '0');
         }
         printf ("\n");
     }
