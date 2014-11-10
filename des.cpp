@@ -153,6 +153,40 @@ void clearBit(char *num, int pos)
     *num &= ~(1 << pos);
 }
 
+void setBitState(char *num, int pos, int value)
+{
+    if (value == 0)
+    {
+        clearBit(num, pos);
+    }
+    else
+    {
+        setBit(num, pos);
+    }
+}
+
+void bitArrayToByteArray(char *input, char *output, int bitLen)
+{
+    int p = 0;
+    for (int i = 0; i < bitLen; ++i)
+    {
+        for (int j = 7; j >= 0; --j)
+            setBitState(output[p], j, input[i]);
+        ++p;
+    }
+}
+
+void byteArrayToBitArray(char *input, char *output, int bitLen)
+{
+    int p = 0;
+    for (int i = 0; i < bitLen; ++i)
+    {
+        for (int j = 7; j >= 0; --j)
+            output[i] = getBit(input[p], j);
+        ++p;
+    }
+}
+
 int leftRotate(char *key, int length, int count)
 {
     for (int i = 0; i < count; ++i)
@@ -230,6 +264,50 @@ void permute(char *text, char *output)
     }
 }
 
+int **getSBox(int box)
+{
+    switch (box)
+    {
+        case 1:
+            return S1;
+        case 2:
+            return S2;
+        case 3:
+            return S3;
+        case 4:
+            return S4;
+        case 5:
+            return S5;
+        case 6:
+            return S6;
+        case 7:
+            return S7;
+        case 8:
+            return S8;
+    }
+    return NULL;
+}
+
+void substitutionBox(char *text)
+{
+    char array[8];
+    int bit = 0;
+    for (int box = 1; box <= 8; ++box)
+    {
+        int **sBox = getSBox(box);
+        char row = 0;
+        char col = 0;
+        setBitState(row, 0, text[bit++]);
+        setBitState(col, 0, text[bit++]);
+        setBitState(col, 1, text[bit++]);
+        setBitState(col, 2, text[bit++]);
+        setBitState(col, 3, text[bit++]);
+        setBitState(row, 1, text[bit++]);
+        array[box-1] = sBox[row][col];
+    }
+    permute(array, output);
+}
+
 //Block Size 64 bits
 void encryptBlock(char *plaintext, KeySet *keyset)
 {
@@ -257,8 +335,7 @@ void encryptBlock(char *plaintext, KeySet *keyset)
     {
         expand(R, temp);
         XOR(temp, keyset[i].k, xorResult);
-        //substition (sboxes)
-        permute(text, finalCipher);
+        substitionBox(num, 
     }
 
     inverseInitialPermutation(ciphertext, finalCipher);
