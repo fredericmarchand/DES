@@ -10,6 +10,8 @@
 #define BLOCK_SIZE 64
 #define ROUNDS 16
 
+#define DEBUG 1 
+
 typedef struct {
     char k[48];
 } KeySet;
@@ -194,7 +196,7 @@ int leftRotate(char *key, int length, int count)
     for (int i = 0; i < count; ++i)
     {
         char temp = key[0];
-        for (int l = 0; l < length; ++l)
+        for (int l = 0; l < length-1; ++l)
         {
             key[l] = key[l+1];
         }
@@ -204,12 +206,13 @@ int leftRotate(char *key, int length, int count)
 
 void combineArrays(char *A1, char *A2, char *out, int n1, int n2)
 {
-    for (int i = 0; i < n1+n2; ++i)
+    int total = n1 + n2;
+    for (int i = 0; i < total; ++i)
     {
         if (i < n1)
             out[i] = A1[i];
         else
-            out[i] = A2[i];
+            out[i] = A2[i-n1];
     }
 }
 
@@ -226,7 +229,7 @@ void generateSubKeys(char *key, KeySet *keyset)
         if (i < 28)
             C[i] = key[PC1[i]-1];
         else
-            D[i] = key[PC1[i]-1];
+            D[i-28] = key[PC1[i]-1];
     }
 
     for (int num = 0; num < 16; ++num)
@@ -254,7 +257,7 @@ void XOR(char *text, char *key, char *output, int len)
 {
     for (int i = 0; i < len; ++i)
     {
-        output[i] = text[i] ^ key[i];   
+        output[i] = (text[i] ^ key[i]);   
     }
 }
 
@@ -277,13 +280,12 @@ void substitutionBox(char *text, char *permuttedArray)
     {
         char row = 0;
         char col = 0;
-        
-        setBitState(&row, 0, text[bit++]);
-        setBitState(&col, 0, text[bit++]);
-        setBitState(&col, 1, text[bit++]);
-        setBitState(&col, 2, text[bit++]);
-        setBitState(&col, 3, text[bit++]);
         setBitState(&row, 1, text[bit++]);
+        setBitState(&col, 3, text[bit++]);
+        setBitState(&col, 2, text[bit++]);
+        setBitState(&col, 1, text[bit++]);
+        setBitState(&col, 0, text[bit++]);
+        setBitState(&row, 0, text[bit++]);
         switch (box)
         {
             case 1:
@@ -313,7 +315,22 @@ void substitutionBox(char *text, char *permuttedArray)
         }
     }
     byteArrayToBitArray(byteArray, bitArray, 32, 4);
+
+#if DEBUG == 1
+    printf ("SBOX: ");
+    for (int j = 0; j < 32; ++j)
+        printf("%d", bitArray[j]);
+    printf ("\n\n");
+#endif
+
     permute(bitArray, permuttedArray);
+
+#if DEBUG == 1
+    printf ("P: ");
+    for (int j = 0; j < 32; ++j)
+        printf("%d", permuttedArray[j]);
+    printf ("\n\n");
+#endif
 }
 
 //Block Size 64 bits
@@ -325,10 +342,12 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset)
     char substitutedResult[32];
     char L[32];
     char R[32];
+    char temp[32];
     
     memset(L, 0, sizeof(L));
     memset(R, 0, sizeof(R));
-    memset(expandedResult, 0, sizeof(expandedResult));
+    memset(ciphertext, 0, sizeof(ciphertext));
+    
     initialPermutation(plaintext, ciphertext);
     
     for (int i = 0; i < 64; ++i)
@@ -336,48 +355,81 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset)
         if (i < 32)
             L[i] = ciphertext[i];
         else
-            R[i] = ciphertext[i];
+            R[i-32] = ciphertext[i];
     }
 
     for (int i = 0; i < ROUNDS; ++i)
     {
+#if DEBUG == 1
+        printf ("L%d: ", i);
+        for (int j = 0; j < 32; ++j)
+            printf("%d", L[j]);
+        printf ("\nR%d: ", i);
+        for (int j = 0; j < 32; ++j)
+            printf("%d", R[j]);
+        printf ("\n\n");
+#endif
+
         expand(R, expandedResult);
+
+#if DEBUG == 1
+        printf ("E: ");
+        for (int j = 0; j < 48; ++j)
+            printf("%d", expandedResult[j]);
+        printf ("\n\n");
+#endif
+
         XOR(expandedResult, keyset[i].k, xorResult, 48);
+
+#if DEBUG == 1
+        printf ("K XOR E: ");
+        for (int j = 0; j < 48; ++j)
+            printf("%d", xorResult[j]);
+        printf ("\n\n");
+#endif
+
         substitutionBox(xorResult, substitutedResult);
-        memcpy(L, R, sizeof(L));
+
+        memcpy(temp, R, sizeof(R));
         XOR(L, substitutedResult, R, 32);
+        memcpy(L, temp, sizeof(L));
     }
 
-    combineArrays(L, R, ciphertext, 32, 32);
+    memset(ciphertext, 0, sizeof(ciphertext));
+    combineArrays(R, L, ciphertext, 32, 32);
     inverseInitialPermutation(ciphertext, finalCiphertext);
 }
 
 int main()
 {
     KeySet keyset[16];
-    char key[65] =  {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
+    char key[65] =   {0,0,1,1,1,0,1,1,0,0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,0,0,1,1,0,1,1,1,0,0,0,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,0,1,1,1,0,1,0,1,1,1,1,0};
+    //{0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
     char block[65] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
     char cipher[65];
     memset(cipher, 0, sizeof(cipher));
     //generateKey(key);
-    //printf("%s\n", key);
     generateSubKeys(key, keyset);
     encryptBlock(block, cipher, keyset);
-    for (int i = 0 ; i < 64; ++i)
+
+    printf ("ciphertext: \n");
+
+    for (int i = 0; i < 64; ++i)
     {
         printf("%d", cipher[i]);
     }
     printf("\n");
 
-#if 0
-    for (int i = 0; i < 16; ++i)
+#if DEBUG == 1
+/*    for (int i = 0; i < 16; ++i)
     {
         for (int j = 0; j < 48; ++j)
         {
-            printf ("%d ", keyset[i].k[j] - '0');
+            printf ("%d", keyset[i].k[j]);
         }
         printf ("\n");
     }
+    */
 #endif
     return 0;
 }
