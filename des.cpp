@@ -9,8 +9,10 @@
 
 #define BLOCK_SIZE 64
 #define ROUNDS 16
+#define MODE_ENCRYPTION 0
+#define MODE_DECRYPTION 1
 
-#define DEBUG 1 
+#define DEBUG 0 
 
 typedef struct {
     char k[48];
@@ -334,8 +336,9 @@ void substitutionBox(char *text, char *permuttedArray)
 }
 
 //Block Size 64 bits
-void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset)
+void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int mode)
 {
+    int round, endRound;
     char ciphertext[64];
     char expandedResult[48];
     char xorResult[48];
@@ -343,6 +346,17 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset)
     char L[32];
     char R[32];
     char temp[32];
+    
+    if (mode == MODE_ENCRYPTION)
+    {
+        round = -1;
+        endRound = ROUNDS-1;
+    }
+    else if (mode == MODE_DECRYPTION)
+    {
+        round = ROUNDS;
+        endRound = 0;
+    }
     
     memset(L, 0, sizeof(L));
     memset(R, 0, sizeof(R));
@@ -358,8 +372,14 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset)
             R[i-32] = ciphertext[i];
     }
 
-    for (int i = 0; i < ROUNDS; ++i)
+    while (round != endRound)
     {
+        if (mode == MODE_ENCRYPTION)
+            round++;
+        else if (mode == MODE_DECRYPTION)
+            round--;
+    //for (int i = 0; i < ROUNDS; ++i)
+    //{
 #if DEBUG == 1
         printf ("L%d: ", i);
         for (int j = 0; j < 32; ++j)
@@ -379,7 +399,7 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset)
         printf ("\n\n");
 #endif
 
-        XOR(expandedResult, keyset[i].k, xorResult, 48);
+        XOR(expandedResult, keyset[round].k, xorResult, 48);
 
 #if DEBUG == 1
         printf ("K XOR E: ");
@@ -400,37 +420,83 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset)
     inverseInitialPermutation(ciphertext, finalCiphertext);
 }
 
-int main()
+void DESEncrypt(char *plaintext, char *ciphertext, char *key)
 {
     KeySet keyset[16];
-    char key[65] =   {0,0,1,1,1,0,1,1,0,0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,0,0,1,1,0,1,1,1,0,0,0,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,0,1,1,1,0,1,0,1,1,1,1,0};
-    //{0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
-    char block[65] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
-    char cipher[65];
-    memset(cipher, 0, sizeof(cipher));
-    //generateKey(key);
     generateSubKeys(key, keyset);
-    encryptBlock(block, cipher, keyset);
+    //For each block (implement CBC)
+    encryptBlock(plaintext, ciphertext, keyset, MODE_ENCRYPTION);
+}
+
+void DESDecrypt(char *ciphertext, char *plaintext, char *key)
+{
+    KeySet keyset[16];
+    generateSubKeys(key, keyset);
+    //For each block (implement CBC)
+    encryptBlock(ciphertext, plaintext, keyset, MODE_DECRYPTION);
+}
+
+void tripleDESEncrypt(char *plaintext, char *ciphertext, char *key1, char *key2, char *key3)
+{
+    KeySet keyset1[16];
+    KeySet keyset2[16];
+    KeySet keyset3[16];
+    char tempCipher1[65];
+    char tempCipher2[65];
+
+    generateSubKeys(key1, keyset1);
+    generateSubKeys(key2, keyset2);
+    generateSubKeys(key3, keyset3);
+
+    //For each block (implement CBC)
+    encryptBlock(plaintext, tempCipher1, keyset1, MODE_ENCRYPTION);
+    encryptBlock(tempCipher1, tempCipher2, keyset2, MODE_DECRYPTION);
+    encryptBlock(tempCipher2, ciphertext, keyset3, MODE_ENCRYPTION);
+}
+
+void tripleDESDecrypt(char *ciphertext, char *plaintext, char *key1, char *key2, char *key3)
+{
+    KeySet keyset1[16];
+    KeySet keyset2[16];
+    KeySet keyset3[16];
+    char tempCipher1[65];
+    char tempCipher2[65];
+
+    generateSubKeys(key1, keyset1);
+    generateSubKeys(key2, keyset2);
+    generateSubKeys(key3, keyset3);
+
+    //For each block (implement CBC)
+    encryptBlock(ciphertext, tempCipher1, keyset1, MODE_DECRYPTION);
+    encryptBlock(tempCipher1, tempCipher2, keyset2, MODE_ENCRYPTION);
+    encryptBlock(tempCipher2, plaintext, keyset3, MODE_DECRYPTION);
+}
+
+int main()
+{
+    char key1[65];
+    char key2[65];
+    char key3[65];
+    
+    //char key[65] =   {0,0,1,1,1,0,1,1,0,0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,0,0,1,1,0,1,1,1,0,0,0,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,0,1,1,1,0,1,0,1,1,1,1,0};
+    char block[65] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
+    char ciphertext[65];
+
+    //Generate Keys
+    generateKey(key1);
+    generateKey(key2);
+    generateKey(key3);
+
+    //Run tests
 
     printf ("ciphertext: \n");
 
     for (int i = 0; i < 64; ++i)
     {
-        printf("%d", cipher[i]);
+        printf("%d", ciphertext[i]);
     }
     printf("\n");
 
-#if DEBUG == 1
-/*    for (int i = 0; i < 16; ++i)
-    {
-        for (int j = 0; j < 48; ++j)
-        {
-            printf ("%d", keyset[i].k[j]);
-        }
-        printf ("\n");
-    }
-    */
-#endif
     return 0;
 }
 
