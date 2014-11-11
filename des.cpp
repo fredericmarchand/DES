@@ -140,7 +140,7 @@ void inverseInitialPermutation(char *text, char *output)
 
 int getBit(char value, int pos)
 {
-    return (value & (1 << pos) >> pos);
+    return ((value & (1 << pos)) >> pos);
 }
 
 void setBit(char *num, int pos)
@@ -165,24 +165,26 @@ void setBitState(char *num, int pos, int value)
     }
 }
 
-void bitArrayToByteArray(char *input, char *output, int bitLen)
+void bitArrayToByteArray(char *input, char *output, int bitLen, int byteSize)
 {
     int p = 0;
-    for (int i = 0; i < bitLen; ++i)
+    int i = 0;
+    while (i < bitLen)
     {
-        for (int j = 7; j >= 0; --j)
-            setBitState(output[p], j, input[i]);
+        for (int j = byteSize-1; j >= 0; --j)
+            setBitState(&output[p], j, input[i++]);
         ++p;
     }
 }
 
-void byteArrayToBitArray(char *input, char *output, int bitLen)
+void byteArrayToBitArray(char *input, char *output, int bitLen, int byteSize)
 {
     int p = 0;
-    for (int i = 0; i < bitLen; ++i)
+    int i = 0;
+    while (i < bitLen)
     {
-        for (int j = 7; j >= 0; --j)
-            output[i] = getBit(input[p], j);
+        for (int j = byteSize-1; j >= 0; --j)
+            output[i++] = getBit(input[p], j);
         ++p;
     }
 }
@@ -248,9 +250,9 @@ void expand(char *text, char *output)
     }
 }
 
-void XOR(char *text, char *key, char *output)
+void XOR(char *text, char *key, char *output, int len)
 {
-    for (int i = 0; i < 48; ++i)
+    for (int i = 0; i < len; ++i)
     {
         output[i] = text[i] ^ key[i];   
     }
@@ -258,69 +260,75 @@ void XOR(char *text, char *key, char *output)
 
 void permute(char *text, char *output)
 {
-    for (int i = 0; i < 48; ++i)
+    for (int i = 0; i < 32; ++i)
     {
         output[i] = text[P[i]-1];
     }
 }
 
-int **getSBox(int box)
+void substitutionBox(char *text, char *permuttedArray)
 {
-    switch (box)
-    {
-        case 1:
-            return S1;
-        case 2:
-            return S2;
-        case 3:
-            return S3;
-        case 4:
-            return S4;
-        case 5:
-            return S5;
-        case 6:
-            return S6;
-        case 7:
-            return S7;
-        case 8:
-            return S8;
-    }
-    return NULL;
-}
-
-void substitutionBox(char *text)
-{
-    char array[8];
+    char byteArray[8];
+    char bitArray[64];
     int bit = 0;
+    memset(byteArray, 0, sizeof(byteArray));
+    memset(bitArray, 0, sizeof(bitArray));
     for (int box = 1; box <= 8; ++box)
     {
-        int **sBox = getSBox(box);
         char row = 0;
         char col = 0;
-        setBitState(row, 0, text[bit++]);
-        setBitState(col, 0, text[bit++]);
-        setBitState(col, 1, text[bit++]);
-        setBitState(col, 2, text[bit++]);
-        setBitState(col, 3, text[bit++]);
-        setBitState(row, 1, text[bit++]);
-        array[box-1] = sBox[row][col];
+        
+        setBitState(&row, 0, text[bit++]);
+        setBitState(&col, 0, text[bit++]);
+        setBitState(&col, 1, text[bit++]);
+        setBitState(&col, 2, text[bit++]);
+        setBitState(&col, 3, text[bit++]);
+        setBitState(&row, 1, text[bit++]);
+        switch (box)
+        {
+            case 1:
+                byteArray[box-1] = S1[row][col];
+                break;
+            case 2:
+                byteArray[box-1] = S2[row][col];
+                break;
+            case 3:
+                byteArray[box-1] = S3[row][col];
+                break;
+            case 4:
+                byteArray[box-1] = S4[row][col];
+                break;
+            case 5:
+                byteArray[box-1] = S5[row][col];
+                break;
+            case 6:
+                byteArray[box-1] = S6[row][col];
+                break;
+            case 7:
+                byteArray[box-1] = S7[row][col];
+                break;
+            case 8:
+                byteArray[box-1] = S8[row][col];
+                break;
+        }
     }
-    permute(array, output);
+    byteArrayToBitArray(byteArray, bitArray, 32, 4);
+    permute(bitArray, permuttedArray);
 }
 
 //Block Size 64 bits
-void encryptBlock(char *plaintext, KeySet *keyset)
+void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset)
 {
     char ciphertext[64];
-    char temp[48];
+    char expandedResult[48];
     char xorResult[48];
-    char finalCipher[64];
+    char substitutedResult[32];
     char L[32];
     char R[32];
     
     memset(L, 0, sizeof(L));
     memset(R, 0, sizeof(R));
-    memset(temp, 0, sizeof(temp));
+    memset(expandedResult, 0, sizeof(expandedResult));
     initialPermutation(plaintext, ciphertext);
     
     for (int i = 0; i < 64; ++i)
@@ -333,21 +341,35 @@ void encryptBlock(char *plaintext, KeySet *keyset)
 
     for (int i = 0; i < ROUNDS; ++i)
     {
-        expand(R, temp);
-        XOR(temp, keyset[i].k, xorResult);
-        substitionBox(num, 
+        expand(R, expandedResult);
+        XOR(expandedResult, keyset[i].k, xorResult, 48);
+        substitutionBox(xorResult, substitutedResult);
+        memcpy(L, R, sizeof(L));
+        XOR(L, substitutedResult, R, 32);
     }
 
-    inverseInitialPermutation(ciphertext, finalCipher);
+    combineArrays(L, R, ciphertext, 32, 32);
+    inverseInitialPermutation(ciphertext, finalCiphertext);
 }
 
 int main()
 {
     KeySet keyset[16];
-    char key[65];// = "1100110011001010101010110100101010101010010100101010101010011001";
-    generateKey(key);
-    printf("%s\n", key);
+    char key[65] =  {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
+    char block[65] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
+    char cipher[65];
+    memset(cipher, 0, sizeof(cipher));
+    //generateKey(key);
+    //printf("%s\n", key);
     generateSubKeys(key, keyset);
+    encryptBlock(block, cipher, keyset);
+    for (int i = 0 ; i < 64; ++i)
+    {
+        printf("%d", cipher[i]);
+    }
+    printf("\n");
+
+#if 0
     for (int i = 0; i < 16; ++i)
     {
         for (int j = 0; j < 48; ++j)
@@ -356,6 +378,7 @@ int main()
         }
         printf ("\n");
     }
+#endif
     return 0;
 }
 
