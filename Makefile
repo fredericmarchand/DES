@@ -1,7 +1,7 @@
 des:	des.o
-		g++ des.o -o des
+		gcc des.o -o des
 
 des.o:	des.h 
-		g++ -c des.cpp -o des.o
+		gcc -c des.c -o des.o
 clean:
 		rm -rf *.o des

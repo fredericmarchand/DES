@@ -118,8 +118,9 @@ int PC2[] = {14, 17, 11, 24,  1,  5,
 
 void generateKey(char* key)
 {
+    int i;
     char temp[2];
-    for (int i = 0; i < 64; ++i) 
+    for (i = 0; i < 64; ++i) 
     {
         sprintf(temp, "%d", rand()%2);
         key[i] = temp[0];
@@ -127,38 +128,40 @@ void generateKey(char* key)
     key[64] = '\0';
 }
 
-void initialPermutation(char *text, char *output)
+static void initialPermutation(char *text, char *output)
 {
-    for (int i = 0; i < BLOCK_SIZE; ++i)
+    int i;
+    for (i = 0; i < BLOCK_SIZE; ++i)
     {
         output[i] = text[IP[i]-1];
     }
 }
 
-void inverseInitialPermutation(char *text, char *output)
+static void inverseInitialPermutation(char *text, char *output)
 {
-    for (int i = 0; i < BLOCK_SIZE; ++i)
+    int i;
+    for (i = 0; i < BLOCK_SIZE; ++i)
     {
         output[i] = text[inverseIP[i]-1];
     }
 }
 
-char getBit(char value, int pos)
+static char getBit(char value, int pos)
 {
     return ((value & (1 << pos)) >> pos);
 }
 
-void setBit(char *num, int pos)
+static void setBit(char *num, int pos)
 {
     *num |= (1 << pos);
 }
 
-void clearBit(char *num, int pos)
+static void clearBit(char *num, int pos)
 {
     *num &= ~(1 << pos);
 }
 
-void setBitState(char *num, int pos, int value)
+static void setBitState(char *num, int pos, int value)
 {
     if (value == 0)
         clearBit(num, pos);
@@ -168,11 +171,12 @@ void setBitState(char *num, int pos, int value)
 
 void bitArrayToByteArray(char *input, char *output, int bitLen, int byteSize)
 {
+    int j;
     int p = 0;
     int i = 0;
     while (i < bitLen)
     {
-        for (int j = byteSize-1; j >= 0; --j)
+        for (j = byteSize-1; j >= 0; --j)
             setBitState(&output[p], j, input[i++]);
         ++p;
     }
@@ -180,22 +184,24 @@ void bitArrayToByteArray(char *input, char *output, int bitLen, int byteSize)
 
 void byteArrayToBitArray(char *input, char *output, int bitLen, int byteSize)
 {
+    int j;
     int p = 0;
     int i = 0;
     while (i < bitLen)
     {
-        for (int j = byteSize-1; j >= 0; --j)
+        for (j = byteSize-1; j >= 0; --j)
             output[i++] = getBit(input[p], j);
         ++p;
     }
 }
 
-int leftRotate(char *key, int length, int count)
+static int leftRotate(char *key, int length, int count)
 {
-    for (int i = 0; i < count; ++i)
+    int i, l;
+    for (i = 0; i < count; ++i)
     {
         char temp = key[0];
-        for (int l = 0; l < length-1; ++l)
+        for (l = 0; l < length-1; ++l)
         {
             key[l] = key[l+1];
         }
@@ -203,10 +209,11 @@ int leftRotate(char *key, int length, int count)
     }
 }
 
-void combineArrays(char *A1, char *A2, char *out, int n1, int n2)
+static void combineArrays(char *A1, char *A2, char *out, int n1, int n2)
 {
+    int i;
     int total = n1 + n2;
-    for (int i = 0; i < total; ++i)
+    for (i = 0; i < total; ++i)
     {
         if (i < n1)
             out[i] = A1[i];
@@ -215,15 +222,15 @@ void combineArrays(char *A1, char *A2, char *out, int n1, int n2)
     }
 }
 
-void generateSubKeys(char *key, KeySet *keyset)
+static void generateSubKeys(char *key, KeySet *keyset)
 {
     char C[28];
     char D[28];
     char K[56];
-    
+    int i, num; 
     memset(C, 0, sizeof(C));
     memset(D, 0, sizeof(D));
-    for (int i = 0; i < 56; ++i)
+    for (i = 0; i < 56; ++i)
     {
         if (i < 28)
             C[i] = key[PC1[i]-1];
@@ -231,51 +238,57 @@ void generateSubKeys(char *key, KeySet *keyset)
             D[i-28] = key[PC1[i]-1];
     }
 
-    for (int num = 0; num < 16; ++num)
+    for (num = 0; num < 16; ++num)
     {
         memset(K, 0, sizeof(K));
         leftRotate(C, 28, keyShifts[num]);
         leftRotate(D, 28, keyShifts[num]);
         combineArrays(C, D, K, 28, 28);
-        for (int i = 0; i < 48; ++i)
+        for (i = 0; i < 48; ++i)
         {
             keyset[num].k[i] = K[PC2[i]-1];
         }
     }
 }
 
-void expand(char *text, char *output)
+static void expand(char *text, char *output)
 {
-    for (int b = 0; b < 48; ++b)
+    int b;
+    for (b = 0; b < 48; ++b)
     {
         output[b] = text[EBitSelectionTable[b]-1];
     }
 }
 
-void XOR(char *text, char *key, char *output, int len)
+static void XOR(char *text, char *key, char *output, int len)
 {
-    for (int i = 0; i < len; ++i)
+    int i;
+    for (i = 0; i < len; ++i)
     {
         output[i] = (0x1 & (text[i] ^ key[i]));
     }
 }
 
-void permute(char *text, char *output)
+static void permute(char *text, char *output)
 {
-    for (int i = 0; i < 32; ++i)
+    int i;
+    for (i = 0; i < 32; ++i)
     {
         output[i] = text[P[i]-1];
     }
 }
 
-void substitutionBox(char *text, char *permuttedArray)
+static void substitutionBox(char *text, char *permuttedArray)
 {
     char byteArray[8];
     char bitArray[64];
     int bit = 0;
+    int box;
+    int j;
+
     memset(byteArray, 0, sizeof(byteArray));
     memset(bitArray, 0, sizeof(bitArray));
-    for (int box = 1; box <= 8; ++box)
+    for (box = 1; box <= 8; ++box)
     {
         char row = 0;
         char col = 0;
@@ -317,7 +330,7 @@ void substitutionBox(char *text, char *permuttedArray)
 
 #if DEBUG == 1
     printf ("SBOX: ");
-    for (int j = 0; j < 32; ++j)
+    for (j = 0; j < 32; ++j)
         printf("%d", bitArray[j]);
     printf ("\n\n");
 #endif
@@ -326,14 +339,14 @@ void substitutionBox(char *text, char *permuttedArray)
 
 #if DEBUG == 1
     printf ("P: ");
-    for (int j = 0; j < 32; ++j)
+    for (j = 0; j < 32; ++j)
         printf("%d", permuttedArray[j]);
     printf ("\n\n");
 #endif
 }
 
 //Block Size 64 bits
-void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int mode)
+static void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int mode)
 {
     int round, endRound;
     char ciphertext[64];
@@ -343,7 +356,9 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int m
     char L[32];
     char R[32];
     char temp[32];
-    
+   
+    int i, j;
+
     if (mode == MODE_ENCRYPTION)
     {
         round = -1;
@@ -361,7 +376,7 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int m
     
     initialPermutation(plaintext, ciphertext);
     
-    for (int i = 0; i < 64; ++i)
+    for (i = 0; i < 64; ++i)
     {
         if (i < 32)
             L[i] = ciphertext[i];
@@ -377,10 +392,10 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int m
             round--;
 #if DEBUG == 1
         printf ("L%d: ", round);
-        for (int j = 0; j < 32; ++j)
+        for (j = 0; j < 32; ++j)
             printf("%d", L[j]);
         printf ("\nR%d: ", round);
-        for (int j = 0; j < 32; ++j)
+        for (j = 0; j < 32; ++j)
             printf("%d", R[j]);
         printf ("\n\n");
 #endif
@@ -389,7 +404,7 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int m
 
 #if DEBUG == 1
         printf ("E: ");
-        for (int j = 0; j < 48; ++j)
+        for (j = 0; j < 48; ++j)
             printf("%d", expandedResult[j]);
         printf ("\n\n");
 #endif
@@ -398,7 +413,7 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int m
 
 #if DEBUG == 1
         printf ("K XOR E: ");
-        for (int j = 0; j < 48; ++j)
+        for (j = 0; j < 48; ++j)
             printf("%d", xorResult[j]);
         printf ("\n\n");
 #endif
@@ -415,46 +430,71 @@ void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int m
     inverseInitialPermutation(ciphertext, finalCiphertext);
 }
 
-void DESEncrypt(char *ciphertext, char *plaintext, char *key, int size)
+void DESEncrypt(char *ciphertext, char *plaintext, char *key)
 {
+    int i;
     //Make sure the size of the output buffer is long enough
-    if (plaintext == NULL || ciphertext == NULL || key == NULL || ((size % 8) != 0))
+    if (plaintext == NULL || ciphertext == NULL || key == NULL || ((strlen(plaintext) % 8) != 0))
         return;
+
     KeySet keyset[16];
-    int totalBlocks = size;
-    char inputBits[totalBlocks * 8];
-    char outputBits[totalBlocks * 8];
-    char outBlock[BLOCK_SIZE];
-    char cipher[totalBlocks];
+    int totalBlocks = strlen(plaintext) / 8;
+    char inputBits[(BLOCK_SIZE * totalBlocks) + 1];
+    char outputBits[(BLOCK_SIZE * totalBlocks) + 1];
+    char outBlock[BLOCK_SIZE+1];
+    char inBlock1[BLOCK_SIZE+1];
+    char inBlock2[BLOCK_SIZE+1];
     char IV[] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
         
     generateSubKeys(key, keyset);
         
-    byteArrayToBitArray(plaintext, inputBits, (totalBlocks * 8), 8);
+    byteArrayToBitArray(plaintext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
 
-    for (int block = 0; block < totalBlocks; block+=1)
+    for (i = 0; i < 64; ++i)
+        printf("%d", inputBits[i]);
+    printf("\n");
+
+    int block;
+    for (block = 0; block < totalBlocks; ++block)
     {
         if (block == 0)
+        {
             XOR(IV, &inputBits[block * BLOCK_SIZE], outBlock, BLOCK_SIZE);
+        }
         else
-            XOR(&outputBits[(block-1) * BLOCK_SIZE], &inputBits[block * BLOCK_SIZE], outBlock, BLOCK_SIZE);
-        
+        {
+            strncpy(inBlock2, &inputBits[(block-1) * BLOCK_SIZE], BLOCK_SIZE);
+            XOR(&inputBits[block * BLOCK_SIZE], &inputBits[(block-1) * BLOCK_SIZE], outBlock, BLOCK_SIZE);
+        }
+      
         encryptBlock(outBlock, &outputBits[block * BLOCK_SIZE], keyset, MODE_ENCRYPTION);
+        for (i = 0; i < 64; ++i)
+            printf ("%d", outputBits[i]);
+        printf("\n");
     }
 
-    bitArrayToByteArray(outputBits, cipher, (totalBlocks * 8), 8);
-    for (int i = 0; i < totalBlocks; ++i)
+    for (i = 0; i < 64; ++i)
     {
-        printf ("%c", cipher[i]);
+        printf ("%d", outputBits[i]);
+    }
+    printf ("\n");
+
+
+    bitArrayToByteArray(outputBits, ciphertext, (totalBlocks * BLOCK_SIZE), 8);
+
+    for (i = 0; i < 8; ++i)
+    {
+        printf ("%c", ciphertext[i]);
     }
     printf ("\n");
 }
 
-void DESDecrypt(char *ciphertext, char *plaintext, char *key, int size)
+void DESDecrypt(char *plaintext, char *ciphertext, char *key, int size)
 {
     //Make sure the size of the output buffer is long enough
     if (plaintext == NULL || ciphertext == NULL || key == NULL || ((size % 8) != 0))
         return;
+    
     KeySet keyset[16];
     int totalBlocks = size;
     char inputBits[size * 8];
@@ -466,7 +506,8 @@ void DESDecrypt(char *ciphertext, char *plaintext, char *key, int size)
 
     byteArrayToBitArray(ciphertext, inputBits, (totalBlocks * 8), 8);
 
-    for (int block = 0; block < totalBlocks; ++block)
+    int block;
+    for (block = 0; block < totalBlocks; ++block)
     {
         encryptBlock(&inputBits[block * BLOCK_SIZE], outBlock, keyset, MODE_DECRYPTION);
 
@@ -479,53 +520,47 @@ void DESDecrypt(char *ciphertext, char *plaintext, char *key, int size)
     bitArrayToByteArray(outputBits, plaintext, (totalBlocks * 8), 8);
 }
 
-void tripleDESEncrypt(char *plaintext, char *ciphertext, char *key1, char *key2, char *key3)
-{
-    char tempCipher1[65];
-    char tempCipher2[65];
+//void tripleDESEncrypt(char *plaintext, char *ciphertext, char *key1, char *key2, char *key3)
+//{
+    //char tempCipher1[65];
+    //char tempCipher2[65];
 
     //DESEncrypt(plaintext, tempCipher1, key1, 8);
     //DESDecrypt(tempCipher1, tempCipher2, key2, 8);
     //DESEncrypt(tempCipher2, ciphertext, key3, 8);
-}
+//}
 
-void tripleDESDecrypt(char *ciphertext, char *plaintext, char *key1, char *key2, char *key3)
-{
-    char tempCipher1[65];
-    char tempCipher2[65];
+//void tripleDESDecrypt(char *ciphertext, char *plaintext, char *key1, char *key2, char *key3)
+//{
+    //char tempCipher1[65];
+    //char tempCipher2[65];
 
     //DESDecrypt(ciphertext, tempCipher1, key1, 8);
     //DESEncrypt(tempCipher1, tempCipher2, key2, 8);
     //DESDecrypt(tempCipher2, plaintext, key3, 8);
-}
+//}
 
-void doSomething(char *ciphertext)
-{
-    ciphertext[0] = 1;
-}
-
-int main()
+int main(int argc, char *argv[])
 {
     char key1[64];
     
     //char key[65] =   {0,0,1,1,1,0,1,1,0,0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,0,0,1,1,0,1,1,1,0,0,0,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,0,1,1,1,0,1,0,1,1,1,1,0};
     //char block[65] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
 
-    char init[8] = {1, 1, 1, 1, 1, 1, 1, 1};
-    char ciphertext[8];
-    char plaintext[8];
-    memset(ciphertext, 0, sizeof(ciphertext));
+    char init[9] = {1, 1, 1, 1, 1, 1, 1, 1, '\0'};
+    char ciphertext[9];
+    //char plaintext[8];
+    memset(ciphertext, '\0', sizeof(ciphertext));
 
     generateKey(key1);
 
-    //doSomething(ciphertext);
-
-    DESEncrypt(ciphertext, init, key1, 8);
+    DESEncrypt(ciphertext, init, key1);
 
     printf ("ciphertext: \n");
-    for (int i = 0; i < 8; ++i)
+    int i;
+    for (i = 0; i < 8; ++i)
     {
-        printf("%d", ciphertext[i]);
+        printf("%c", ciphertext[i]);
     }
     printf("\n");
 
