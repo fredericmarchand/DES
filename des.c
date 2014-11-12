@@ -448,9 +448,11 @@ void DESEncrypt(char *ciphertext, char *plaintext, char *key)
         
     byteArrayToBitArray(plaintext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
 
+#if DEBUG == 2
     for (i = 0; i < 64; ++i)
         printf("%d", inputBits[i]);
     printf("\n");
+#endif
 
     int block;
     for (block = 0; block < totalBlocks; ++block)
@@ -466,16 +468,20 @@ void DESEncrypt(char *ciphertext, char *plaintext, char *key)
       
         encryptBlock(outBlock, &outputBits[block * BLOCK_SIZE], keyset, MODE_ENCRYPTION);
 
+#if DEBUG == 2
         for (i = 0; i < 64; ++i)
             printf ("%d", outputBits[i]);
         printf("\n");
+#endif
     }
 
     bitArrayToByteArray(outputBits, ciphertext, (totalBlocks * BLOCK_SIZE), 8);
 
+#if DEBUG == 2
     for (i = 0; i < 8; ++i)
         printf ("%c", ciphertext[i]);
     printf ("\n");
+#endif
 }
 
 void DESDecrypt(char *plaintext, char *ciphertext, char *key)
@@ -496,9 +502,11 @@ void DESDecrypt(char *plaintext, char *ciphertext, char *key)
         
     byteArrayToBitArray(ciphertext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
 
+#if DEBUG == 2
     for (i = 0; i < 64; ++i)
         printf("%d", inputBits[i]);
     printf("\n");
+#endif
 
     int block;
     for (block = 0; block < totalBlocks; ++block)
@@ -514,41 +522,49 @@ void DESDecrypt(char *plaintext, char *ciphertext, char *key)
             XOR(outBlock, &inputBits[(block-1) * BLOCK_SIZE], &outputBits[(block) * BLOCK_SIZE], BLOCK_SIZE);
         }
 
+#if DEBUG == 2
         for (i = 0; i < 64; ++i)
             printf ("%d", outputBits[i]);
         printf("\n");
+#endif
     }
 
     bitArrayToByteArray(outputBits, plaintext, (totalBlocks * BLOCK_SIZE), 8);
 
+#if DEBUG == 2
     for (i = 0; i < 8; ++i)
         printf ("%c", plaintext[i]);
     printf ("\n");
+#endif
 }
 
-//void tripleDESEncrypt(char *plaintext, char *ciphertext, char *key1, char *key2, char *key3)
-//{
-    //char tempCipher1[65];
-    //char tempCipher2[65];
+void tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *key2, char *key3)
+{
+    int length = strlen(plaintext);
+    char tempBuffer1[length + 1];
+    char tempBuffer2[length + 1];
 
-    //DESEncrypt(plaintext, tempCipher1, key1, 8);
-    //DESDecrypt(tempCipher1, tempCipher2, key2, 8);
-    //DESEncrypt(tempCipher2, ciphertext, key3, 8);
-//}
+    DESEncrypt(tempBuffer1, plaintext, key1);
+    DESDecrypt(tempBuffer2, tempBuffer1, key2);
+    DESEncrypt(ciphertext, tempBuffer2, key3);
+}
 
-//void tripleDESDecrypt(char *ciphertext, char *plaintext, char *key1, char *key2, char *key3)
-//{
-    //char tempCipher1[65];
-    //char tempCipher2[65];
+void tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *key2, char *key3)
+{
+    int length = strlen(ciphertext);
+    char tempBuffer1[length + 1];
+    char tempBuffer2[length + 1];
 
-    //DESDecrypt(ciphertext, tempCipher1, key1, 8);
-    //DESEncrypt(tempCipher1, tempCipher2, key2, 8);
-    //DESDecrypt(tempCipher2, plaintext, key3, 8);
-//}
+    DESDecrypt(tempBuffer1, ciphertext, key3);
+    DESEncrypt(tempBuffer2, tempBuffer1, key2);
+    DESDecrypt(plaintext, tempBuffer2, key1);
+}
 
 int main(int argc, char *argv[])
 {
     char key1[64];
+    char key2[64];
+    char key3[64];
     
     //char key[65] =   {0,0,1,1,1,0,1,1,0,0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,0,0,1,1,0,1,1,1,0,0,0,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,0,1,1,1,0,1,0,1,1,1,1,0};
     //char block[65] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
@@ -561,8 +577,10 @@ int main(int argc, char *argv[])
     memset(plaintext, '\0', sizeof(plaintext));
 
     generateKey(key1);
+    generateKey(key2);
+    generateKey(key3);
 
-    DESEncrypt(ciphertext, init, key1);
+    tripleDESEncrypt(ciphertext, init, key1, key2, key3);
 
     printf ("ciphertext: \n");
     
@@ -573,7 +591,7 @@ int main(int argc, char *argv[])
     }
     printf("\n");
 
-    DESDecrypt(plaintext, ciphertext, key1);
+    tripleDESDecrypt(plaintext, ciphertext, key1, key2, key3);
     
     printf ("plaintext: \n");
     for (i = 0; i < 8; ++i)
@@ -581,7 +599,10 @@ int main(int argc, char *argv[])
         printf("%c", plaintext[i]);
     }
     printf("\n");
-    
+
+    if (strncmp(init, plaintext, 8) == 0)
+        printf ("EYYOO\n");
+
     return 0;
 }
 
