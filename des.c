@@ -543,10 +543,25 @@ void tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *key2,
     int length = strlen(plaintext);
     char tempBuffer1[length + 1];
     char tempBuffer2[length + 1];
+    char tempBuffer3[length + 1];
+    int i;
 
     DESEncrypt(tempBuffer1, plaintext, key1);
+    for (i = 0; i < 8; ++i)
+        printf ("%c", tempBuffer1[i]);
+    printf ("\n");
+
     DESDecrypt(tempBuffer2, tempBuffer1, key2);
-    DESEncrypt(ciphertext, tempBuffer2, key3);
+    for (i = 0; i < 8; ++i)
+        printf ("%c", tempBuffer2[i]);
+    printf ("\n");
+
+    DESEncrypt(tempBuffer3, tempBuffer2, key3);
+    for (i = 0; i < 8; ++i)
+        printf ("%c", tempBuffer3[i]);
+    printf ("\n");
+
+    memcpy(ciphertext, tempBuffer3, length);
 }
 
 void tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *key2, char *key3)
@@ -554,10 +569,25 @@ void tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *key2,
     int length = strlen(ciphertext);
     char tempBuffer1[length + 1];
     char tempBuffer2[length + 1];
+    char tempBuffer3[length + 1];
+    int i;
 
     DESDecrypt(tempBuffer1, ciphertext, key3);
+    for (i = 0; i < 8; ++i)
+        printf ("%c", tempBuffer1[i]);
+    printf ("\n");
+
     DESEncrypt(tempBuffer2, tempBuffer1, key2);
-    DESDecrypt(plaintext, tempBuffer2, key1);
+    for (i = 0; i < 8; ++i)
+        printf ("%c", tempBuffer2[i]);
+    printf ("\n");
+
+    DESDecrypt(tempBuffer3, tempBuffer2, key1);
+    for (i = 0; i < 8; ++i)
+        printf ("%c", tempBuffer3[i]);
+    printf ("\n");
+
+    memcpy(plaintext, tempBuffer3, length);
 }
 
 int main(int argc, char *argv[])
