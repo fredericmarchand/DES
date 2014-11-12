@@ -442,8 +442,6 @@ void DESEncrypt(char *ciphertext, char *plaintext, char *key)
     char inputBits[(BLOCK_SIZE * totalBlocks) + 1];
     char outputBits[(BLOCK_SIZE * totalBlocks) + 1];
     char outBlock[BLOCK_SIZE+1];
-    char inBlock1[BLOCK_SIZE+1];
-    char inBlock2[BLOCK_SIZE+1];
     char IV[] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
         
     generateSubKeys(key, keyset);
@@ -463,48 +461,44 @@ void DESEncrypt(char *ciphertext, char *plaintext, char *key)
         }
         else
         {
-            strncpy(inBlock2, &inputBits[(block-1) * BLOCK_SIZE], BLOCK_SIZE);
             XOR(&inputBits[block * BLOCK_SIZE], &inputBits[(block-1) * BLOCK_SIZE], outBlock, BLOCK_SIZE);
         }
       
         encryptBlock(outBlock, &outputBits[block * BLOCK_SIZE], keyset, MODE_ENCRYPTION);
+
         for (i = 0; i < 64; ++i)
             printf ("%d", outputBits[i]);
         printf("\n");
     }
 
-    for (i = 0; i < 64; ++i)
-    {
-        printf ("%d", outputBits[i]);
-    }
-    printf ("\n");
-
-
     bitArrayToByteArray(outputBits, ciphertext, (totalBlocks * BLOCK_SIZE), 8);
 
     for (i = 0; i < 8; ++i)
-    {
         printf ("%c", ciphertext[i]);
-    }
     printf ("\n");
 }
 
-void DESDecrypt(char *plaintext, char *ciphertext, char *key, int size)
+void DESDecrypt(char *plaintext, char *ciphertext, char *key)
 {
+    int i;
     //Make sure the size of the output buffer is long enough
-    if (plaintext == NULL || ciphertext == NULL || key == NULL || ((size % 8) != 0))
+    if (plaintext == NULL || ciphertext == NULL || key == NULL || ((strlen(plaintext) % 8) != 0))
         return;
-    
+
     KeySet keyset[16];
-    int totalBlocks = size;
-    char inputBits[size * 8];
-    char outputBits[size * 8];
-    char outBlock[BLOCK_SIZE];
+    int totalBlocks = strlen(ciphertext) / 8;
+    char inputBits[(BLOCK_SIZE * totalBlocks) + 1];
+    char outputBits[(BLOCK_SIZE * totalBlocks) + 1];
+    char outBlock[BLOCK_SIZE+1];
     char IV[] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
-
+        
     generateSubKeys(key, keyset);
+        
+    byteArrayToBitArray(ciphertext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
 
-    byteArrayToBitArray(ciphertext, inputBits, (totalBlocks * 8), 8);
+    for (i = 0; i < 64; ++i)
+        printf("%d", inputBits[i]);
+    printf("\n");
 
     int block;
     for (block = 0; block < totalBlocks; ++block)
@@ -512,12 +506,24 @@ void DESDecrypt(char *plaintext, char *ciphertext, char *key, int size)
         encryptBlock(&inputBits[block * BLOCK_SIZE], outBlock, keyset, MODE_DECRYPTION);
 
         if (block == 0)
+        {
             XOR(IV, outBlock, &outputBits[block * BLOCK_SIZE], BLOCK_SIZE);
+        }
         else
-            XOR(&outputBits[(block-1) * BLOCK_SIZE], outBlock, &outputBits[block * BLOCK_SIZE], BLOCK_SIZE);
+        {
+            XOR(outBlock, &inputBits[(block-1) * BLOCK_SIZE], &outputBits[(block) * BLOCK_SIZE], BLOCK_SIZE);
+        }
+
+        for (i = 0; i < 64; ++i)
+            printf ("%d", outputBits[i]);
+        printf("\n");
     }
 
-    bitArrayToByteArray(outputBits, plaintext, (totalBlocks * 8), 8);
+    bitArrayToByteArray(outputBits, plaintext, (totalBlocks * BLOCK_SIZE), 8);
+
+    for (i = 0; i < 8; ++i)
+        printf ("%c", plaintext[i]);
+    printf ("\n");
 }
 
 //void tripleDESEncrypt(char *plaintext, char *ciphertext, char *key1, char *key2, char *key3)
@@ -547,16 +553,19 @@ int main(int argc, char *argv[])
     //char key[65] =   {0,0,1,1,1,0,1,1,0,0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,0,0,1,1,0,1,1,1,0,0,0,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,0,1,1,1,0,1,0,1,1,1,1,0};
     //char block[65] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
 
-    char init[9] = {1, 1, 1, 1, 1, 1, 1, 1, '\0'};
+    char init[9] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', '\0'};
     char ciphertext[9];
-    //char plaintext[8];
+    char plaintext[9];
+
     memset(ciphertext, '\0', sizeof(ciphertext));
+    memset(plaintext, '\0', sizeof(plaintext));
 
     generateKey(key1);
 
     DESEncrypt(ciphertext, init, key1);
 
     printf ("ciphertext: \n");
+    
     int i;
     for (i = 0; i < 8; ++i)
     {
@@ -564,16 +573,15 @@ int main(int argc, char *argv[])
     }
     printf("\n");
 
-#if 0
-    DESDecrypt(cipher, plaintext, key1, 8);
+    DESDecrypt(plaintext, ciphertext, key1);
     
     printf ("plaintext: \n");
-    for (int i = 0; i < 8; ++i)
+    for (i = 0; i < 8; ++i)
     {
         printf("%c", plaintext[i]);
     }
     printf("\n");
-#endif
+    
     return 0;
 }
 

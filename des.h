@@ -2,6 +2,6 @@
 #define DES_H
 
 void DESEncrypt(char *ciphertext, char *plaintext, char *key);
-void DESDecrypt(char *plaintext, char *ciphertext, char *key, int size);
+void DESDecrypt(char *plaintext, char *ciphertext, char *key);
 
 #endif
