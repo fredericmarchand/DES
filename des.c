@@ -540,54 +540,126 @@ void DESDecrypt(char *plaintext, char *ciphertext, char *key)
 
 void tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *key2, char *key3)
 {
-    int length = strlen(plaintext);
-    char tempBuffer1[length + 1];
-    char tempBuffer2[length + 1];
-    char tempBuffer3[length + 1];
     int i;
+    //Make sure the size of the output buffer is long enough
+    if (plaintext == NULL || ciphertext == NULL || key1 == NULL || key2 == NULL || key3 == NULL || ((strlen(plaintext) % 8) != 0))
+        return;
 
-    DESEncrypt(tempBuffer1, plaintext, key1);
+    KeySet keyset1[16];
+    KeySet keyset2[16];
+    KeySet keyset3[16];
+    int totalBlocks = strlen(plaintext) / 8;
+    char inputBits[(BLOCK_SIZE * totalBlocks) + 1];
+    char outputBits[(BLOCK_SIZE * totalBlocks) + 1];
+    char outBlock[BLOCK_SIZE+1];
+    char tempBuffer1[BLOCK_SIZE+1]; 
+    char tempBuffer2[BLOCK_SIZE+1]; 
+    char IV[] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
+        
+    generateSubKeys(key1, keyset1);
+    generateSubKeys(key2, keyset2);
+    generateSubKeys(key3, keyset3);
+   
+    byteArrayToBitArray(plaintext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
+
+#if DEBUG == 2
+    for (i = 0; i < 64; ++i)
+        printf("%d", inputBits[i]);
+    printf("\n");
+#endif
+
+    int block;
+    for (block = 0; block < totalBlocks; ++block)
+    {
+        if (block == 0)
+        {
+            XOR(IV, &inputBits[block * BLOCK_SIZE], outBlock, BLOCK_SIZE);
+        }
+        else
+        {
+            XOR(&inputBits[block * BLOCK_SIZE], &inputBits[(block-1) * BLOCK_SIZE], outBlock, BLOCK_SIZE);
+        }
+      
+        encryptBlock(outBlock, tempBuffer1, keyset1, MODE_ENCRYPTION);
+        encryptBlock(tempBuffer1, tempBuffer2, keyset2, MODE_DECRYPTION);
+        encryptBlock(tempBuffer2, &outputBits[block * BLOCK_SIZE], keyset3, MODE_ENCRYPTION);
+
+#if DEBUG == 2
+        for (i = 0; i < 64; ++i)
+            printf ("%d", outputBits[i]);
+        printf("\n");
+#endif
+    }
+
+    bitArrayToByteArray(outputBits, ciphertext, (totalBlocks * BLOCK_SIZE), 8);
+
+#if DEBUG == 2
     for (i = 0; i < 8; ++i)
-        printf ("%c", tempBuffer1[i]);
+        printf ("%c", ciphertext[i]);
     printf ("\n");
-
-    DESDecrypt(tempBuffer2, tempBuffer1, key2);
-    for (i = 0; i < 8; ++i)
-        printf ("%c", tempBuffer2[i]);
-    printf ("\n");
-
-    DESEncrypt(tempBuffer3, tempBuffer2, key3);
-    for (i = 0; i < 8; ++i)
-        printf ("%c", tempBuffer3[i]);
-    printf ("\n");
-
-    memcpy(ciphertext, tempBuffer3, length);
+#endif
 }
 
 void tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *key2, char *key3)
 {
-    int length = strlen(ciphertext);
-    char tempBuffer1[length + 1];
-    char tempBuffer2[length + 1];
-    char tempBuffer3[length + 1];
     int i;
+    //Make sure the size of the output buffer is long enough
+    if (plaintext == NULL || ciphertext == NULL || key1 == NULL || key2 == NULL || key3 == NULL || ((strlen(plaintext) % 8) != 0))
+        return;
 
-    DESDecrypt(tempBuffer1, ciphertext, key3);
+    KeySet keyset1[16];
+    KeySet keyset2[16];
+    KeySet keyset3[16];
+    int totalBlocks = strlen(ciphertext) / 8;
+    char inputBits[(BLOCK_SIZE * totalBlocks) + 1];
+    char outputBits[(BLOCK_SIZE * totalBlocks) + 1];
+    char outBlock[BLOCK_SIZE+1];
+    char tempBuffer1[BLOCK_SIZE+1];
+    char tempBuffer2[BLOCK_SIZE+1];
+    char IV[] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
+        
+    generateSubKeys(key1, keyset1);
+    generateSubKeys(key2, keyset2);
+    generateSubKeys(key3, keyset3);
+        
+    byteArrayToBitArray(ciphertext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
+
+#if DEBUG == 2
+    for (i = 0; i < 64; ++i)
+        printf("%d", inputBits[i]);
+    printf("\n");
+#endif
+
+    int block;
+    for (block = 0; block < totalBlocks; ++block)
+    {
+        encryptBlock(&inputBits[block * BLOCK_SIZE], tempBuffer1, keyset3, MODE_DECRYPTION);
+        encryptBlock(tempBuffer1, tempBuffer2, keyset2, MODE_ENCRYPTION);
+        encryptBlock(tempBuffer2, outBlock, keyset1, MODE_DECRYPTION);
+
+        if (block == 0)
+        {
+            XOR(IV, outBlock, &outputBits[block * BLOCK_SIZE], BLOCK_SIZE);
+        }
+        else
+        {
+            XOR(outBlock, &inputBits[(block-1) * BLOCK_SIZE], &outputBits[(block) * BLOCK_SIZE], BLOCK_SIZE);
+        }
+
+#if DEBUG == 2
+        for (i = 0; i < 64; ++i)
+            printf ("%d", outputBits[i]);
+        printf("\n");
+#endif
+    }
+
+    bitArrayToByteArray(outputBits, plaintext, (totalBlocks * BLOCK_SIZE), 8);
+
+#if DEBUG == 2
     for (i = 0; i < 8; ++i)
-        printf ("%c", tempBuffer1[i]);
+        printf ("%c", plaintext[i]);
     printf ("\n");
-
-    DESEncrypt(tempBuffer2, tempBuffer1, key2);
-    for (i = 0; i < 8; ++i)
-        printf ("%c", tempBuffer2[i]);
-    printf ("\n");
-
-    DESDecrypt(tempBuffer3, tempBuffer2, key1);
-    for (i = 0; i < 8; ++i)
-        printf ("%c", tempBuffer3[i]);
-    printf ("\n");
-
-    memcpy(plaintext, tempBuffer3, length);
+#endif
 }
 
 int main(int argc, char *argv[])
