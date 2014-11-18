@@ -152,18 +152,18 @@ void DES::generateKey(char* key)
     }
 }
 
-static void initialPermutation(char *text, char *output)
+static void initialPermutation(const char *text, char *output)
 {
-    int i;
+    char i;
     for (i = 0; i < BLOCK_SIZE; ++i)
     {
         output[i] = text[IP[i]-1];
     }
 }
 
-static void inverseInitialPermutation(char *text, char *output)
+static void inverseInitialPermutation(const char *text, char *output)
 {
-    int i;
+    char i;
     for (i = 0; i < BLOCK_SIZE; ++i)
     {
         output[i] = text[inverseIP[i]-1];
@@ -219,9 +219,9 @@ void byteArrayToBitArray(const char *input, char *output, int bitLen, int byteSi
     }
 }
 
-static int leftRotate(char *key, int length, int count)
+static void leftRotate(char *key, int length, int count)
 {
-    int i, l;
+    char i, l;
     for (i = 0; i < count; ++i)
     {
         char temp = key[0];
@@ -233,9 +233,9 @@ static int leftRotate(char *key, int length, int count)
     }
 }
 
-static void combineArrays(char *A1, char *A2, char *out, int n1, int n2)
+static void combineArrays(const char *A1, const char *A2, char *out, int n1, int n2)
 {
-    int i;
+    char i;
     int total = n1 + n2;
     for (i = 0; i < total; ++i)
     {
@@ -283,27 +283,27 @@ void DES::generateSubKeys(const char *key, KeySet *keyset)
     }
 }
 
-static void expand(char *text, char *output)
+static void expand(const char *text, char *output)
 {
-    int b;
-    for (b = 0; b < 48; ++b)
+    char i;
+    for (i = 0; i < 48; ++i)
     {
-        output[b] = text[EBitSelectionTable[b]-1];
+        output[i] = text[EBitSelectionTable[i]-1];
     }
 }
 
 static void XOR(const char *text, const char *key, char *output, int len)
 {
-    int i;
+    char i;
     for (i = 0; i < len; ++i)
     {
         output[i] = (0x1 & (text[i] ^ key[i]));
     }
 }
 
-static void permute(char *text, char *output)
+static void permute(const char *text, char *output)
 {
-    int i;
+    char i;
     for (i = 0; i < 32; ++i)
     {
         output[i] = text[P[i]-1];
@@ -314,9 +314,8 @@ static void substitutionBox(const char *text, char *permuttedArray)
 {
     char byteArray[8];
     char bitArray[64];
-    int bit = 0;
-    int box;
-    int j;
+    char bit = 0;
+    char box;
 
     memset(byteArray, 0, sizeof(byteArray));
     memset(bitArray, 0, sizeof(bitArray));
@@ -362,7 +361,7 @@ static void substitutionBox(const char *text, char *permuttedArray)
 
 #if DEBUG == 1
     printf ("SBOX: ");
-    for (j = 0; j < 32; ++j)
+    for (char j = 0; j < 32; ++j)
         printf("%d", bitArray[j]);
     printf ("\n\n");
 #endif
@@ -371,7 +370,7 @@ static void substitutionBox(const char *text, char *permuttedArray)
 
 #if DEBUG == 1
     printf ("P: ");
-    for (j = 0; j < 32; ++j)
+    for (char j = 0; j < 32; ++j)
         printf("%d", permuttedArray[j]);
     printf ("\n\n");
 #endif
@@ -380,7 +379,7 @@ static void substitutionBox(const char *text, char *permuttedArray)
 //Block Size 64 bits
 void DES::encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int mode)
 {
-    int round, endRound;
+    char round, endRound;
     char ciphertext[64];
     char expandedResult[48];
     char currentKey[48];
@@ -390,7 +389,7 @@ void DES::encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, 
     char R[32];
     char temp[32];
    
-    int i, j;
+    char i;
 
     if (mode == MODE_ENCRYPTION)
     {
@@ -425,10 +424,10 @@ void DES::encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, 
             round--;
 #if DEBUG == 1
         printf ("L%d: ", round);
-        for (j = 0; j < 32; ++j)
+        for (char j = 0; j < 32; ++j)
             printf("%d", L[j]);
         printf ("\nR%d: ", round);
-        for (j = 0; j < 32; ++j)
+        for (char j = 0; j < 32; ++j)
             printf("%d", R[j]);
         printf ("\n\n");
 #endif
@@ -437,7 +436,7 @@ void DES::encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, 
 
 #if DEBUG == 1
         printf ("E: ");
-        for (j = 0; j < 48; ++j)
+        for (char j = 0; j < 48; ++j)
             printf("%d", expandedResult[j]);
         printf ("\n\n");
 #endif
@@ -447,7 +446,7 @@ void DES::encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, 
 
 #if DEBUG == 1
         printf ("K XOR E: ");
-        for (j = 0; j < 48; ++j)
+        for (char j = 0; j < 48; ++j)
             printf("%d", xorResult[j]);
         printf ("\n\n");
 #endif
@@ -466,28 +465,26 @@ void DES::encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, 
 
 void DES::DESEncrypt(char *ciphertext, char *plaintext, char *key)
 {
-    int i;
     //Make sure the size of the output buffer is long enough
     if (plaintext == NULL || ciphertext == NULL || key == NULL || ((strlen(plaintext) % 8) != 0))
         return;
 
     KeySet keyset[16];
     int totalBlocks = strlen(plaintext) / 8;
-    char inputBits[(BLOCK_SIZE * totalBlocks) + 1];
-    char outputBits[(BLOCK_SIZE * totalBlocks) + 1];
-    char outBlock[BLOCK_SIZE+1];
+    char inputBits[(BLOCK_SIZE * totalBlocks)];
+    char outputBits[(BLOCK_SIZE * totalBlocks)];
+    char outBlock[BLOCK_SIZE];
     generateSubKeys(key, keyset);
         
     byteArrayToBitArray(plaintext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
 
 #if DEBUG == 2
-    for (i = 0; i < 64; ++i)
+    for (char i = 0; i < 64; ++i)
         printf("%d", inputBits[i]);
     printf("\n");
 #endif
 
-    int block;
-    for (block = 0; block < totalBlocks; ++block)
+    for (char block = 0; block < totalBlocks; ++block)
     {
         if (block == 0)
         {
@@ -501,7 +498,7 @@ void DES::DESEncrypt(char *ciphertext, char *plaintext, char *key)
         encryptBlock(outBlock, &outputBits[block * BLOCK_SIZE], keyset, MODE_ENCRYPTION);
 
 #if DEBUG == 2
-        for (i = 0; i < 64; ++i)
+        for (char i = 0; i < 64; ++i)
             printf ("%d", outputBits[i]);
         printf("\n");
 #endif
@@ -510,7 +507,7 @@ void DES::DESEncrypt(char *ciphertext, char *plaintext, char *key)
     bitArrayToByteArray(outputBits, ciphertext, (totalBlocks * BLOCK_SIZE), 8);
 
 #if DEBUG == 2
-    for (i = 0; i < 8; ++i)
+    for (char i = 0; i < 8; ++i)
         printf ("%c", ciphertext[i]);
     printf ("\n");
 #endif
@@ -518,29 +515,27 @@ void DES::DESEncrypt(char *ciphertext, char *plaintext, char *key)
 
 void DES::DESDecrypt(char *plaintext, char *ciphertext, char *key)
 {
-    int i;
     //Make sure the size of the output buffer is long enough
     if (plaintext == NULL || ciphertext == NULL || key == NULL || ((strlen(plaintext) % 8) != 0))
         return;
 
     KeySet keyset[16];
     int totalBlocks = strlen(ciphertext) / 8;
-    char inputBits[(BLOCK_SIZE * totalBlocks) + 1];
-    char outputBits[(BLOCK_SIZE * totalBlocks) + 1];
-    char outBlock[BLOCK_SIZE+1];
+    char inputBits[(BLOCK_SIZE * totalBlocks)];
+    char outputBits[(BLOCK_SIZE * totalBlocks)];
+    char outBlock[BLOCK_SIZE];
         
     generateSubKeys(key, keyset);
         
     byteArrayToBitArray(ciphertext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
 
 #if DEBUG == 2
-    for (i = 0; i < 64; ++i)
+    for (char i = 0; i < 64; ++i)
         printf("%d", inputBits[i]);
     printf("\n");
 #endif
 
-    int block;
-    for (block = 0; block < totalBlocks; ++block)
+    for (char block = 0; block < totalBlocks; ++block)
     {
         encryptBlock(&inputBits[block * BLOCK_SIZE], outBlock, keyset, MODE_DECRYPTION);
 
@@ -554,7 +549,7 @@ void DES::DESDecrypt(char *plaintext, char *ciphertext, char *key)
         }
 
 #if DEBUG == 2
-        for (i = 0; i < 64; ++i)
+        for (char i = 0; i < 64; ++i)
             printf ("%d", outputBits[i]);
         printf("\n");
 #endif
@@ -563,7 +558,7 @@ void DES::DESDecrypt(char *plaintext, char *ciphertext, char *key)
     bitArrayToByteArray(outputBits, plaintext, (totalBlocks * BLOCK_SIZE), 8);
 
 #if DEBUG == 2
-    for (i = 0; i < 8; ++i)
+    for (char i = 0; i < 8; ++i)
         printf ("%c", plaintext[i]);
     printf ("\n");
 #endif
@@ -571,7 +566,6 @@ void DES::DESDecrypt(char *plaintext, char *ciphertext, char *key)
 
 void DES::tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *key2, char *key3)
 {
-    int i;
     //Make sure the size of the output buffer is long enough
     if (plaintext == NULL || ciphertext == NULL || key1 == NULL || key2 == NULL || key3 == NULL || ((strlen(plaintext) % 8) != 0))
         return;
@@ -580,11 +574,11 @@ void DES::tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *
     KeySet keyset2[16];
     KeySet keyset3[16];
     int totalBlocks = strlen(plaintext) / 8;
-    char inputBits[(BLOCK_SIZE * totalBlocks) + 1];
-    char outputBits[(BLOCK_SIZE * totalBlocks) + 1];
-    char outBlock[BLOCK_SIZE+1];
-    char tempBuffer1[BLOCK_SIZE+1]; 
-    char tempBuffer2[BLOCK_SIZE+1]; 
+    char inputBits[(BLOCK_SIZE * totalBlocks)];
+    char outputBits[(BLOCK_SIZE * totalBlocks)];
+    char outBlock[BLOCK_SIZE];
+    char tempBuffer1[BLOCK_SIZE]; 
+    char tempBuffer2[BLOCK_SIZE]; 
         
     generateSubKeys(key1, keyset1);
     generateSubKeys(key2, keyset2);
@@ -593,13 +587,12 @@ void DES::tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *
     byteArrayToBitArray(plaintext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
 
 #if DEBUG == 2
-    for (i = 0; i < 64; ++i)
+    for (char i = 0; i < 64; ++i)
         printf("%d", inputBits[i]);
     printf("\n");
 #endif
 
-    int block;
-    for (block = 0; block < totalBlocks; ++block)
+    for (char block = 0; block < totalBlocks; ++block)
     {
         if (block == 0)
         {
@@ -615,7 +608,7 @@ void DES::tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *
         encryptBlock(tempBuffer2, &outputBits[block * BLOCK_SIZE], keyset3, MODE_ENCRYPTION);
 
 #if DEBUG == 2
-        for (i = 0; i < 64; ++i)
+        for (char i = 0; i < 64; ++i)
             printf ("%d", outputBits[i]);
         printf("\n");
 #endif
@@ -624,7 +617,7 @@ void DES::tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *
     bitArrayToByteArray(outputBits, ciphertext, (totalBlocks * BLOCK_SIZE), 8);
 
 #if DEBUG == 2
-    for (i = 0; i < 8; ++i)
+    for (char i = 0; i < 8; ++i)
         printf ("%c", ciphertext[i]);
     printf ("\n");
 #endif
@@ -632,7 +625,6 @@ void DES::tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *
 
 void DES::tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *key2, char *key3)
 {
-    int i;
     //Make sure the size of the output buffer is long enough
     if (plaintext == NULL || ciphertext == NULL || key1 == NULL || key2 == NULL || key3 == NULL || ((strlen(plaintext) % 8) != 0))
         return;
@@ -641,11 +633,11 @@ void DES::tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *
     KeySet keyset2[16];
     KeySet keyset3[16];
     int totalBlocks = strlen(ciphertext) / 8;
-    char inputBits[(BLOCK_SIZE * totalBlocks) + 1];
-    char outputBits[(BLOCK_SIZE * totalBlocks) + 1];
-    char outBlock[BLOCK_SIZE+1];
-    char tempBuffer1[BLOCK_SIZE+1];
-    char tempBuffer2[BLOCK_SIZE+1];
+    char inputBits[(BLOCK_SIZE * totalBlocks)];
+    char outputBits[(BLOCK_SIZE * totalBlocks)];
+    char outBlock[BLOCK_SIZE];
+    char tempBuffer1[BLOCK_SIZE];
+    char tempBuffer2[BLOCK_SIZE];
         
     generateSubKeys(key1, keyset1);
     generateSubKeys(key2, keyset2);
@@ -654,13 +646,12 @@ void DES::tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *
     byteArrayToBitArray(ciphertext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
 
 #if DEBUG == 2
-    for (i = 0; i < 64; ++i)
+    for (char i = 0; i < 64; ++i)
         printf("%d", inputBits[i]);
     printf("\n");
 #endif
 
-    int block;
-    for (block = 0; block < totalBlocks; ++block)
+    for (char block = 0; block < totalBlocks; ++block)
     {
         encryptBlock(&inputBits[block * BLOCK_SIZE], tempBuffer1, keyset3, MODE_DECRYPTION);
         encryptBlock(tempBuffer1, tempBuffer2, keyset2, MODE_ENCRYPTION);
@@ -676,7 +667,7 @@ void DES::tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *
         }
 
 #if DEBUG == 2
-        for (i = 0; i < 64; ++i)
+        for (char i = 0; i < 64; ++i)
             printf ("%d", outputBits[i]);
         printf("\n");
 #endif
@@ -685,7 +676,7 @@ void DES::tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *
     bitArrayToByteArray(outputBits, plaintext, (totalBlocks * BLOCK_SIZE), 8);
 
 #if DEBUG == 2
-    for (i = 0; i < 8; ++i)
+    for (char i = 0; i < 8; ++i)
         printf ("%c", plaintext[i]);
     printf ("\n");
 #endif
