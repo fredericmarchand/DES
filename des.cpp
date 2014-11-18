@@ -17,32 +17,11 @@ using namespace std;
 
 #define DEBUG 0 
 
-static const 
-char IP[] = {58, 50, 42, 34, 26, 18, 10, 2, 
-            60, 52, 44, 36, 28, 20, 12, 4, 
-            62, 54, 46, 38, 30, 22, 14, 6, 
-            64, 56, 48, 40, 32, 24, 16, 8, 
-            57, 49, 41, 33, 25, 17,  9, 1, 
-            59, 51, 43, 35, 27, 19, 11, 3, 
-            61, 53, 45, 37, 29, 21, 13, 5, 
-            63, 55, 47, 39, 31, 23, 15, 7};
-
-static const
-char inverseIP[] = {40, 8, 48, 16, 56, 24, 64, 32, 
-                   39, 7, 47, 15, 55, 23, 63, 31, 
-                   38, 6, 46, 14, 54, 22, 62, 30, 
-                   37, 5, 45, 13, 53, 21, 61, 29, 
-                   36, 4, 44, 12, 52, 20, 60, 28, 
-                   35, 3, 43, 11, 51, 19, 59, 27, 
-                   34, 2, 42, 10, 50, 18, 58, 26, 
-                   33, 1, 41,  9, 49, 17, 57, 25 };
-
 static const
 char S1[][16] = {{14,  4, 13, 1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9, 0, 7},
                 { 0, 15,  7, 4, 14,  2, 13,  1, 10,  6, 12, 11,  9,  5, 3, 8}, 
                 { 4,  1, 14, 8, 13,  6,  2, 11, 15, 12,  9,  7,  3, 10, 5, 0}, 
                 {15, 12,  8, 2,  4,  9,  1,  7,  5, 11,  3, 14, 10,  0, 6, 13}};
-
 
 static const
 char S2[][16] = {{15, 1, 8, 14, 6, 11, 3, 4, 9, 7, 2, 13, 12, 0, 5, 10}, 
@@ -109,26 +88,7 @@ char P[] = {16,  7, 20, 21,
 static const
 char keyShifts[] = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
 
-static const
-char PC1[] = {57, 49, 41, 33, 25, 17,  9, 
-              1, 58, 50, 42, 34, 26, 18, 
-             10,  2, 59, 51, 43, 35, 27, 
-             19, 11,  3, 60, 52, 44, 36,
 
-             63, 55, 47, 39, 31, 23, 15, 
-              7, 62, 54, 46, 38, 30, 22, 
-             14,  6, 61, 53, 45, 37, 29, 
-             21, 13,  5, 28, 20, 12, 4};
-
-static const 
-char PC2[] = {14, 17, 11, 24,  1,  5, 
-              3, 28, 15,  6, 21, 10, 
-             23, 19, 12,  4, 26,  8, 
-             16,  7, 27, 20, 13,  2, 
-             41, 52, 31, 37, 47, 55, 
-             30, 40, 51, 45, 33, 48, 
-             44, 49, 39, 56, 34, 53, 
-             46, 42, 50, 36, 29, 32};
 
 static const
 char IV[] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
@@ -143,9 +103,8 @@ DES::~DES()
 
 void DES::generateKey(char* key)
 {
-    char i;
     char temp[2];
-    for (i = 0; i < 8; ++i) 
+    for (char i = 0; i < 8; ++i) 
     {
         sprintf(temp, "%d", rand()%256);
         key[i] = temp[0];
@@ -154,8 +113,17 @@ void DES::generateKey(char* key)
 
 static void initialPermutation(const char *text, char *output)
 {
-    char i;
-    for (i = 0; i < BLOCK_SIZE; ++i)
+    static const 
+    char IP[] = {58, 50, 42, 34, 26, 18, 10, 2, 
+            60, 52, 44, 36, 28, 20, 12, 4, 
+            62, 54, 46, 38, 30, 22, 14, 6, 
+            64, 56, 48, 40, 32, 24, 16, 8, 
+            57, 49, 41, 33, 25, 17,  9, 1, 
+            59, 51, 43, 35, 27, 19, 11, 3, 
+            61, 53, 45, 37, 29, 21, 13, 5, 
+            63, 55, 47, 39, 31, 23, 15, 7};
+
+    for (char i = 0; i < BLOCK_SIZE; ++i)
     {
         output[i] = text[IP[i]-1];
     }
@@ -163,29 +131,38 @@ static void initialPermutation(const char *text, char *output)
 
 static void inverseInitialPermutation(const char *text, char *output)
 {
-    char i;
-    for (i = 0; i < BLOCK_SIZE; ++i)
+    static const
+    char inverseIP[] = {40, 8, 48, 16, 56, 24, 64, 32, 
+                   39, 7, 47, 15, 55, 23, 63, 31, 
+                   38, 6, 46, 14, 54, 22, 62, 30, 
+                   37, 5, 45, 13, 53, 21, 61, 29, 
+                   36, 4, 44, 12, 52, 20, 60, 28, 
+                   35, 3, 43, 11, 51, 19, 59, 27, 
+                   34, 2, 42, 10, 50, 18, 58, 26, 
+                   33, 1, 41,  9, 49, 17, 57, 25 };
+
+    for (char i = 0; i < BLOCK_SIZE; ++i)
     {
         output[i] = text[inverseIP[i]-1];
     }
 }
 
-static char getBit(char value, int pos)
+static char getBit(char value, char pos)
 {
     return ((value & (1 << pos)) >> pos);
 }
 
-static void setBit(char *num, int pos)
+static void setBit(char *num, char pos)
 {
     *num |= (1 << pos);
 }
 
-static void clearBit(char *num, int pos)
+static void clearBit(char *num, char pos)
 {
     *num &= ~(1 << pos);
 }
 
-static void setBitState(char *num, int pos, int value)
+static void setBitState(char *num, char pos, char value)
 {
     if (value == 0)
         clearBit(num, pos);
@@ -193,11 +170,11 @@ static void setBitState(char *num, int pos, int value)
         setBit(num, pos);
 }
 
-void bitArrayToByteArray(const char *input, char *output, int bitLen, int byteSize)
+void bitArrayToByteArray(const char *input, char *output, char bitLen, char byteSize)
 {
-    int j;
-    int p = 0;
-    int i = 0;
+    char j;
+    char p = 0;
+    char i = 0;
     while (i < bitLen)
     {
         for (j = byteSize-1; j >= 0; --j)
@@ -206,11 +183,11 @@ void bitArrayToByteArray(const char *input, char *output, int bitLen, int byteSi
     }
 }
 
-void byteArrayToBitArray(const char *input, char *output, int bitLen, int byteSize)
+void byteArrayToBitArray(const char *input, char *output, char bitLen, char byteSize)
 {
-    int j;
-    int p = 0;
-    int i = 0;
+    char j;
+    char p = 0;
+    char i = 0;
     while (i < bitLen)
     {
         for (j = byteSize-1; j >= 0; --j)
@@ -219,7 +196,7 @@ void byteArrayToBitArray(const char *input, char *output, int bitLen, int byteSi
     }
 }
 
-static void leftRotate(char *key, int length, int count)
+static void leftRotate(char *key, char length, char count)
 {
     char i, l;
     for (i = 0; i < count; ++i)
@@ -233,10 +210,10 @@ static void leftRotate(char *key, int length, int count)
     }
 }
 
-static void combineArrays(const char *A1, const char *A2, char *out, int n1, int n2)
+static void combineArrays(const char *A1, const char *A2, char *out, char n1, char n2)
 {
     char i;
-    int total = n1 + n2;
+    char total = n1 + n2;
     for (i = 0; i < total; ++i)
     {
         if (i < n1)
@@ -248,6 +225,27 @@ static void combineArrays(const char *A1, const char *A2, char *out, int n1, int
 
 void DES::generateSubKeys(const char *key, KeySet *keyset)
 {
+    static const
+    char PC1[] = {57, 49, 41, 33, 25, 17,  9, 
+              1, 58, 50, 42, 34, 26, 18, 
+             10,  2, 59, 51, 43, 35, 27, 
+             19, 11,  3, 60, 52, 44, 36,
+
+             63, 55, 47, 39, 31, 23, 15, 
+              7, 62, 54, 46, 38, 30, 22, 
+             14,  6, 61, 53, 45, 37, 29, 
+             21, 13,  5, 28, 20, 12, 4};
+
+    static const 
+    char PC2[] = {14, 17, 11, 24,  1,  5, 
+              3, 28, 15,  6, 21, 10, 
+             23, 19, 12,  4, 26,  8, 
+             16,  7, 27, 20, 13,  2, 
+             41, 52, 31, 37, 47, 55, 
+             30, 40, 51, 45, 33, 48, 
+             44, 49, 39, 56, 34, 53, 
+             46, 42, 50, 36, 29, 32};
+
     char C[28];
     char D[28];
     char K[64];
@@ -257,7 +255,7 @@ void DES::generateSubKeys(const char *key, KeySet *keyset)
 
     memset(C, 0, sizeof(C));
     memset(D, 0, sizeof(D));
-    for (int i = 0; i < 56; ++i)
+    for (char i = 0; i < 56; ++i)
     {
         if (i < 28)
             C[i] = K[PC1[i]-1];
@@ -292,7 +290,7 @@ static void expand(const char *text, char *output)
     }
 }
 
-static void XOR(const char *text, const char *key, char *output, int len)
+static void XOR(const char *text, const char *key, char *output, char len)
 {
     char i;
     for (i = 0; i < len; ++i)
@@ -377,7 +375,7 @@ static void substitutionBox(const char *text, char *permuttedArray)
 }
 
 //Block Size 64 bits
-void DES::encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int mode)
+void DES::encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, char mode)
 {
     char round, endRound;
     char ciphertext[64];
@@ -470,7 +468,7 @@ void DES::DESEncrypt(char *ciphertext, char *plaintext, char *key)
         return;
 
     KeySet keyset[16];
-    int totalBlocks = strlen(plaintext) / 8;
+    char totalBlocks = strlen(plaintext) / 8;
     char inputBits[(BLOCK_SIZE * totalBlocks)];
     char outputBits[(BLOCK_SIZE * totalBlocks)];
     char outBlock[BLOCK_SIZE];
@@ -520,7 +518,7 @@ void DES::DESDecrypt(char *plaintext, char *ciphertext, char *key)
         return;
 
     KeySet keyset[16];
-    int totalBlocks = strlen(ciphertext) / 8;
+    char totalBlocks = strlen(ciphertext) / 8;
     char inputBits[(BLOCK_SIZE * totalBlocks)];
     char outputBits[(BLOCK_SIZE * totalBlocks)];
     char outBlock[BLOCK_SIZE];
@@ -573,7 +571,7 @@ void DES::tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *
     KeySet keyset1[16];
     KeySet keyset2[16];
     KeySet keyset3[16];
-    int totalBlocks = strlen(plaintext) / 8;
+    char totalBlocks = strlen(plaintext) / 8;
     char inputBits[(BLOCK_SIZE * totalBlocks)];
     char outputBits[(BLOCK_SIZE * totalBlocks)];
     char outBlock[BLOCK_SIZE];
@@ -632,7 +630,7 @@ void DES::tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *
     KeySet keyset1[16];
     KeySet keyset2[16];
     KeySet keyset3[16];
-    int totalBlocks = strlen(ciphertext) / 8;
+    char totalBlocks = strlen(ciphertext) / 8;
     char inputBits[(BLOCK_SIZE * totalBlocks)];
     char outputBits[(BLOCK_SIZE * totalBlocks)];
     char outBlock[BLOCK_SIZE];

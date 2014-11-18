@@ -9,7 +9,7 @@ private:
         char k[6]; 
     };
 
-    void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int mode);
+    void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, char mode);
     void generateSubKeys(const char *key, KeySet *keyset);
 
 public: 
