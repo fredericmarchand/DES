@@ -6,11 +6,11 @@ class DES {
 private:
 
     struct KeySet{
-        char k[48]; 
+        char k[6]; 
     };
 
     void encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, int mode);
-    void generateSubKeys(char *key, KeySet *keyset);
+    void generateSubKeys(const char *key, KeySet *keyset);
 
 public: 
 

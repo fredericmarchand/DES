@@ -17,8 +17,8 @@ using namespace std;
 
 #define DEBUG 0 
 
-static 
-int IP[] = {58, 50, 42, 34, 26, 18, 10, 2, 
+static const 
+char IP[] = {58, 50, 42, 34, 26, 18, 10, 2, 
             60, 52, 44, 36, 28, 20, 12, 4, 
             62, 54, 46, 38, 30, 22, 14, 6, 
             64, 56, 48, 40, 32, 24, 16, 8, 
@@ -27,8 +27,8 @@ int IP[] = {58, 50, 42, 34, 26, 18, 10, 2,
             61, 53, 45, 37, 29, 21, 13, 5, 
             63, 55, 47, 39, 31, 23, 15, 7};
 
-static
-int inverseIP[] = {40, 8, 48, 16, 56, 24, 64, 32, 
+static const
+char inverseIP[] = {40, 8, 48, 16, 56, 24, 64, 32, 
                    39, 7, 47, 15, 55, 23, 63, 31, 
                    38, 6, 46, 14, 54, 22, 62, 30, 
                    37, 5, 45, 13, 53, 21, 61, 29, 
@@ -37,57 +37,57 @@ int inverseIP[] = {40, 8, 48, 16, 56, 24, 64, 32,
                    34, 2, 42, 10, 50, 18, 58, 26, 
                    33, 1, 41,  9, 49, 17, 57, 25 };
 
-static
-int S1[][16] = {{14,  4, 13, 1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9, 0, 7},
+static const
+char S1[][16] = {{14,  4, 13, 1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9, 0, 7},
                 { 0, 15,  7, 4, 14,  2, 13,  1, 10,  6, 12, 11,  9,  5, 3, 8}, 
                 { 4,  1, 14, 8, 13,  6,  2, 11, 15, 12,  9,  7,  3, 10, 5, 0}, 
                 {15, 12,  8, 2,  4,  9,  1,  7,  5, 11,  3, 14, 10,  0, 6, 13}};
 
 
-static
-int S2[][16] = {{15, 1, 8, 14, 6, 11, 3, 4, 9, 7, 2, 13, 12, 0, 5, 10}, 
+static const
+char S2[][16] = {{15, 1, 8, 14, 6, 11, 3, 4, 9, 7, 2, 13, 12, 0, 5, 10}, 
                 {3, 13, 4, 7, 15, 2, 8, 14, 12, 0, 1, 10, 6, 9, 11, 5}, 
                 {0, 14, 7, 11, 10, 4, 13, 1, 5, 8, 12, 6, 9, 3, 2, 15}, 
                 {13, 8, 10, 1, 3, 15, 4, 2, 11, 6, 7, 12, 0, 5, 14, 9}};
 
-static
-int S3[][16] = {{10, 0, 9, 14, 6, 3, 15, 5, 1, 13, 12, 7, 11, 4, 2, 8}, 
+static const
+char S3[][16] = {{10, 0, 9, 14, 6, 3, 15, 5, 1, 13, 12, 7, 11, 4, 2, 8}, 
                 {13, 7, 0, 9, 3, 4, 6, 10, 2, 8, 5, 14, 12, 11, 15, 1}, 
                 {13, 6, 4, 9, 8, 15, 3, 0, 11, 1, 2, 12, 5, 10, 14, 7}, 
                 {1, 10, 13, 0, 6, 9, 8, 7, 4, 15, 14, 3, 11, 5, 2, 12}};
 
-static
-int S4[][16] = {{7, 13, 14, 3, 0, 6, 9, 10, 1, 2, 8, 5, 11, 12, 4, 15}, 
+static const 
+char S4[][16] = {{7, 13, 14, 3, 0, 6, 9, 10, 1, 2, 8, 5, 11, 12, 4, 15}, 
                 {13, 8, 11, 5, 6, 15, 0, 3, 4, 7, 2, 12, 1, 10, 14, 9}, 
                 {10, 6, 9, 0, 12, 11, 7, 13, 15, 1, 3, 14, 5, 2, 8, 4}, 
                 {3, 15, 0, 6, 10, 1, 13, 8, 9, 4, 5, 11, 12, 7, 2, 14}};
 
-static
-int S5[][16] = {{2, 12, 4, 1, 7, 10, 11, 6, 8, 5, 3, 15, 13, 0, 14, 9}, 
+static const
+char S5[][16] = {{2, 12, 4, 1, 7, 10, 11, 6, 8, 5, 3, 15, 13, 0, 14, 9}, 
                 {14, 11, 2, 12, 4, 7, 13, 1, 5, 0, 15, 10, 3, 9, 8, 6}, 
                 {4, 2, 1, 11, 10, 13, 7, 8, 15, 9, 12, 5, 6, 3, 0, 14}, 
                 {11, 8, 12, 7, 1, 14, 2, 13, 6, 15, 0, 9, 10, 4, 5, 3}};
 
-static
-int S6[][16] = {{12, 1, 10, 15, 9, 2, 6, 8, 0, 13, 3, 4, 14, 7, 5, 11}, 
+static const
+char S6[][16] = {{12, 1, 10, 15, 9, 2, 6, 8, 0, 13, 3, 4, 14, 7, 5, 11}, 
                 {10, 15, 4, 2, 7, 12, 9, 5, 6, 1, 13, 14, 0, 11, 3, 8}, 
                 {9, 14, 15, 5, 2, 8, 12, 3, 7, 0, 4, 10, 1, 13, 11, 6}, 
                 {4, 3, 2, 12, 9, 5, 15, 10, 11, 14, 1, 7, 6, 0, 8, 13}};
 
-static
-int S7[][16] = {{4, 11, 2, 14, 15, 0, 8, 13, 3, 12, 9, 7, 5, 10, 6, 1}, 
+static const
+char S7[][16] = {{4, 11, 2, 14, 15, 0, 8, 13, 3, 12, 9, 7, 5, 10, 6, 1}, 
                 {13, 0, 11, 7, 4, 9, 1, 10, 14, 3, 5, 12, 2, 15, 8, 6}, 
                 {1, 4, 11, 13, 12, 3, 7, 14, 10, 15, 6, 8, 0, 5, 9, 2}, 
                 {6, 11, 13, 8, 1, 4, 10, 7, 9, 5, 0, 15, 14, 2, 3, 12}};
 
-static 
-int S8[][16] = {{13, 2, 8, 4, 6, 15, 11, 1, 10, 9, 3, 14, 5, 0, 12, 7}, 
+static const
+char S8[][16] = {{13, 2, 8, 4, 6, 15, 11, 1, 10, 9, 3, 14, 5, 0, 12, 7}, 
                 {1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 11, 0, 14, 9, 2}, 
                 {7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8}, 
                 {2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11}};
 
-static 
-int EBitSelectionTable[] = {32,  1,  2,  3,  4,  5, 
+static const
+char EBitSelectionTable[] = {32,  1,  2,  3,  4,  5, 
                              4,  5,  6,  7,  8,  9, 
                              8,  9, 10, 11, 12, 13, 
                             12, 13, 14, 15, 16, 17, 
@@ -96,8 +96,8 @@ int EBitSelectionTable[] = {32,  1,  2,  3,  4,  5,
                             24, 25, 26, 27, 28, 29, 
                             28, 29, 30, 31, 32,  1};
 
-static 
-int P[] = {16,  7, 20, 21, 
+static const 
+char P[] = {16,  7, 20, 21, 
            29, 12, 28, 17, 
             1, 15, 23, 26, 
             5, 18, 31, 10, 
@@ -106,11 +106,11 @@ int P[] = {16,  7, 20, 21,
            19, 13, 30,  6, 
            22, 11,  4, 25};
 
-static
-int keyShifts[] = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
+static const
+char keyShifts[] = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
 
-static 
-int PC1[] = {57, 49, 41, 33, 25, 17,  9, 
+static const
+char PC1[] = {57, 49, 41, 33, 25, 17,  9, 
               1, 58, 50, 42, 34, 26, 18, 
              10,  2, 59, 51, 43, 35, 27, 
              19, 11,  3, 60, 52, 44, 36,
@@ -120,8 +120,8 @@ int PC1[] = {57, 49, 41, 33, 25, 17,  9,
              14,  6, 61, 53, 45, 37, 29, 
              21, 13,  5, 28, 20, 12, 4};
 
-static 
-int PC2[] = {14, 17, 11, 24,  1,  5, 
+static const 
+char PC2[] = {14, 17, 11, 24,  1,  5, 
               3, 28, 15,  6, 21, 10, 
              23, 19, 12,  4, 26,  8, 
              16,  7, 27, 20, 13,  2, 
@@ -130,6 +130,8 @@ int PC2[] = {14, 17, 11, 24,  1,  5,
              44, 49, 39, 56, 34, 53, 
              46, 42, 50, 36, 29, 32};
 
+static const
+char IV[] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
 
 DES::DES()
 {
@@ -141,14 +143,13 @@ DES::~DES()
 
 void DES::generateKey(char* key)
 {
-    int i;
+    char i;
     char temp[2];
-    for (i = 0; i < 64; ++i) 
+    for (i = 0; i < 8; ++i) 
     {
-        sprintf(temp, "%d", rand()%2);
+        sprintf(temp, "%d", rand()%256);
         key[i] = temp[0];
     }
-    key[64] = '\0';
 }
 
 static void initialPermutation(char *text, char *output)
@@ -192,7 +193,7 @@ static void setBitState(char *num, int pos, int value)
         setBit(num, pos);
 }
 
-void bitArrayToByteArray(char *input, char *output, int bitLen, int byteSize)
+void bitArrayToByteArray(const char *input, char *output, int bitLen, int byteSize)
 {
     int j;
     int p = 0;
@@ -205,7 +206,7 @@ void bitArrayToByteArray(char *input, char *output, int bitLen, int byteSize)
     }
 }
 
-void byteArrayToBitArray(char *input, char *output, int bitLen, int byteSize)
+void byteArrayToBitArray(const char *input, char *output, int bitLen, int byteSize)
 {
     int j;
     int p = 0;
@@ -245,20 +246,23 @@ static void combineArrays(char *A1, char *A2, char *out, int n1, int n2)
     }
 }
 
-void DES::generateSubKeys(char *key, KeySet *keyset)
+void DES::generateSubKeys(const char *key, KeySet *keyset)
 {
     char C[28];
     char D[28];
-    char K[56];
-    int i, num; 
+    char K[64];
+    char num, byte, bit; 
+    
+    byteArrayToBitArray(key, K, 64, 8); 
+
     memset(C, 0, sizeof(C));
     memset(D, 0, sizeof(D));
-    for (i = 0; i < 56; ++i)
+    for (int i = 0; i < 56; ++i)
     {
         if (i < 28)
-            C[i] = key[PC1[i]-1];
+            C[i] = K[PC1[i]-1];
         else
-            D[i-28] = key[PC1[i]-1];
+            D[i-28] = K[PC1[i]-1];
     }
 
     for (num = 0; num < 16; ++num)
@@ -267,9 +271,14 @@ void DES::generateSubKeys(char *key, KeySet *keyset)
         leftRotate(C, 28, keyShifts[num]);
         leftRotate(D, 28, keyShifts[num]);
         combineArrays(C, D, K, 28, 28);
-        for (i = 0; i < 48; ++i)
+        byte = 0;
+        char count = 0;
+        for (byte = 0; byte < 6; ++byte)
         {
-            keyset[num].k[i] = K[PC2[i]-1];
+            for (bit = 7; bit >= 0; --bit)
+            {
+                setBitState(&keyset[num].k[byte], bit, K[PC2[count++]-1]);
+            }
         }
     }
 }
@@ -283,7 +292,7 @@ static void expand(char *text, char *output)
     }
 }
 
-static void XOR(char *text, char *key, char *output, int len)
+static void XOR(const char *text, const char *key, char *output, int len)
 {
     int i;
     for (i = 0; i < len; ++i)
@@ -301,7 +310,7 @@ static void permute(char *text, char *output)
     }
 }
 
-static void substitutionBox(char *text, char *permuttedArray)
+static void substitutionBox(const char *text, char *permuttedArray)
 {
     char byteArray[8];
     char bitArray[64];
@@ -374,6 +383,7 @@ void DES::encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, 
     int round, endRound;
     char ciphertext[64];
     char expandedResult[48];
+    char currentKey[48];
     char xorResult[48];
     char substitutedResult[32];
     char L[32];
@@ -432,7 +442,8 @@ void DES::encryptBlock(char *plaintext, char *finalCiphertext,  KeySet *keyset, 
         printf ("\n\n");
 #endif
 
-        XOR(expandedResult, keyset[round].k, xorResult, 48);
+        byteArrayToBitArray(keyset[round].k, currentKey, 48, 8);        
+        XOR(expandedResult, currentKey, xorResult, 48);
 
 #if DEBUG == 1
         printf ("K XOR E: ");
@@ -465,8 +476,6 @@ void DES::DESEncrypt(char *ciphertext, char *plaintext, char *key)
     char inputBits[(BLOCK_SIZE * totalBlocks) + 1];
     char outputBits[(BLOCK_SIZE * totalBlocks) + 1];
     char outBlock[BLOCK_SIZE+1];
-    char IV[] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
-        
     generateSubKeys(key, keyset);
         
     byteArrayToBitArray(plaintext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
@@ -519,7 +528,6 @@ void DES::DESDecrypt(char *plaintext, char *ciphertext, char *key)
     char inputBits[(BLOCK_SIZE * totalBlocks) + 1];
     char outputBits[(BLOCK_SIZE * totalBlocks) + 1];
     char outBlock[BLOCK_SIZE+1];
-    char IV[] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
         
     generateSubKeys(key, keyset);
         
@@ -577,7 +585,6 @@ void DES::tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *
     char outBlock[BLOCK_SIZE+1];
     char tempBuffer1[BLOCK_SIZE+1]; 
     char tempBuffer2[BLOCK_SIZE+1]; 
-    char IV[] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
         
     generateSubKeys(key1, keyset1);
     generateSubKeys(key2, keyset2);
@@ -639,7 +646,6 @@ void DES::tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *
     char outBlock[BLOCK_SIZE+1];
     char tempBuffer1[BLOCK_SIZE+1];
     char tempBuffer2[BLOCK_SIZE+1];
-    char IV[] = {0,1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0,1,0,0,1,0,0,0};
         
     generateSubKeys(key1, keyset1);
     generateSubKeys(key2, keyset2);
@@ -688,9 +694,9 @@ void DES::tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *
 int main(int argc, char *argv[])
 {
     DES des;
-    char key1[64];
-    char key2[64];
-    char key3[64];
+    char key1[8];
+    char key2[8];
+    char key3[8];
     
     char init[9] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', '\0'};
     char ciphertext[9];
