@@ -592,7 +592,7 @@ void DES::tripleDESEncrypt(char *ciphertext, char *plaintext, char *key1, char *
         }
         else
         {
-            XOR(&inputBits[block * BLOCK_SIZE], &inputBits[(block-1) * BLOCK_SIZE], outBlock, BLOCK_SIZE);
+            XOR(&inputBits[block * BLOCK_SIZE], &outputBits[(block-1) * BLOCK_SIZE], outBlock, BLOCK_SIZE);
         }
       
         encryptBlock(outBlock, tempBuffer1, keyset1, MODE_ENCRYPTION);
@@ -692,7 +692,7 @@ int main(int argc, char *argv[])
     des.generateKey(key2);
     des.generateKey(key3);
 
-    des.DESEncrypt(ciphertext, init, key1);
+    des.tripleDESEncrypt(ciphertext, init, key1, key2, key3);
 
     printf ("ciphertext: \n");
     
@@ -703,7 +703,7 @@ int main(int argc, char *argv[])
     }
     printf("\n");
 
-    des.DESDecrypt(plaintext, ciphertext, key1);
+    des.tripleDESDecrypt(plaintext, ciphertext, key1, key2, key3);
     
     printf ("plaintext: \n");
     for (i = 0; i < 16; ++i)
