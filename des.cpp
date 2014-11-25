@@ -3,6 +3,7 @@
  * 3-DES
  */
 
+#include <iostream>
 #include <cstdlib>
 #include <stdio.h>
 #include <string.h>
@@ -189,11 +190,11 @@ static void setBitState(char *num, char pos, char value)
         setBit(num, pos);
 }
 
-void bitArrayToByteArray(const char *input, char *output, char bitLen, char byteSize)
+void bitArrayToByteArray(const char *input, char *output, int bitLen, int byteSize)
 {
-    char j;
-    char p = 0;
-    char i = 0;
+    int j;
+    int p = 0;
+    int i = 0;
     while (i < bitLen)
     {
         for (j = byteSize-1; j >= 0; --j)
@@ -202,11 +203,11 @@ void bitArrayToByteArray(const char *input, char *output, char bitLen, char byte
     }
 }
 
-void byteArrayToBitArray(const char *input, char *output, char bitLen, char byteSize)
-{
-    char j;
-    char p = 0;
-    char i = 0;
+void byteArrayToBitArray(const char *input, char *output, int bitLen, int byteSize)
+{   
+    int j;
+    int p = 0;
+    int i = 0;
     while (i < bitLen)
     {
         for (j = byteSize-1; j >= 0; --j)
@@ -467,9 +468,8 @@ void DES::DESEncrypt(char *ciphertext, char *plaintext, char *key)
     char outputBits[(BLOCK_SIZE * totalBlocks)];
     char outBlock[BLOCK_SIZE];
     generateSubKeys(key, keyset);
-        
+    
     byteArrayToBitArray(plaintext, inputBits, (totalBlocks * BLOCK_SIZE), 8);
-
 #if DEBUG == 2
     for (char i = 0; i < 64; ++i)
         printf("%d", inputBits[i]);
@@ -484,7 +484,7 @@ void DES::DESEncrypt(char *ciphertext, char *plaintext, char *key)
         }
         else
         {
-            XOR(&inputBits[block * BLOCK_SIZE], &inputBits[(block-1) * BLOCK_SIZE], outBlock, BLOCK_SIZE);
+            XOR(&inputBits[block * BLOCK_SIZE], &outputBits[(block-1) * BLOCK_SIZE], outBlock, BLOCK_SIZE);
         }
       
         encryptBlock(outBlock, &outputBits[block * BLOCK_SIZE], keyset, MODE_ENCRYPTION);
@@ -681,9 +681,9 @@ int main(int argc, char *argv[])
     char key2[8];
     char key3[8];
     
-    char init[9] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', '\0'};
-    char ciphertext[9];
-    char plaintext[9];
+    char init[17] = "ABCDEFGHIJKLMNOP";
+    char ciphertext[17];
+    char plaintext[17];
 
     memset(ciphertext, '\0', sizeof(ciphertext));
     memset(plaintext, '\0', sizeof(plaintext));
@@ -692,27 +692,27 @@ int main(int argc, char *argv[])
     des.generateKey(key2);
     des.generateKey(key3);
 
-    des.tripleDESEncrypt(ciphertext, init, key1, key2, key3);
+    des.DESEncrypt(ciphertext, init, key1);
 
     printf ("ciphertext: \n");
     
     int i;
-    for (i = 0; i < 8; ++i)
+    for (i = 0; i < 16; ++i)
     {
         printf("%c", ciphertext[i]);
     }
     printf("\n");
 
-    des.tripleDESDecrypt(plaintext, ciphertext, key1, key2, key3);
+    des.DESDecrypt(plaintext, ciphertext, key1);
     
     printf ("plaintext: \n");
-    for (i = 0; i < 8; ++i)
+    for (i = 0; i < 16; ++i)
     {
         printf("%c", plaintext[i]);
     }
     printf("\n");
 
-    if (strncmp(init, plaintext, 8) == 0)
+    if (strncmp(init, plaintext, 16) == 0)
         printf ("EYYOO\n");
 
     return 0;
