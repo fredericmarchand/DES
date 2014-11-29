@@ -713,19 +713,28 @@ int main(int argc, char *argv[])
 
     int length = strlen(argv[5]);
 
-    while (length++ % 8 != 0);
+    while (length % 8 != 0)
+    {
+        ++length;
+    }
 
-    inputText = new char[length];
-    memset(inputText, '\0', length-1);
+    inputText = new char[length + 1];
     strcpy(inputText, argv[5]);
+    for (int i = strlen(argv[5]); i < length; ++i)
+    {
+        inputText[i] = '0';
+    }
+    inputText[length] = '\0';
     
-    outputText = new char[length];
+    outputText = new char[length + 1];
+
+    cout << inputText << " " << strlen(inputText) << endl;
 
     if (strcmp(argv[1], "encrypt") == 0)
     {
         des.tripleDESEncrypt(outputText, inputText, key1, key2, key3);
         printf ("ciphertext: \n");
-        for (int i = 0; i < 16; ++i)
+        for (int i = 0; i < length; ++i)
         {
             printf("%c", outputText[i]);
         }
@@ -736,7 +745,7 @@ int main(int argc, char *argv[])
         des.tripleDESDecrypt(outputText, inputText, key1, key2, key3);
         printf ("plaintext: \n");
     
-        for (int i = 0; i < 16; ++i)
+        for (int i = 0; i < length; ++i)
         {
             printf("%c", outputText[i]);
         }
