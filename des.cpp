@@ -677,43 +677,78 @@ void DES::tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *
 int main(int argc, char *argv[])
 {
     DES des;
-    char key1[8];
-    char key2[8];
-    char key3[8];
     
-    char init[17] = "ABCDEFGHIJKLMNOP";
-    char ciphertext[17];
-    char plaintext[17];
+    char *key1;
+    char *key2;
+    char *key3;
 
-    memset(ciphertext, '\0', sizeof(ciphertext));
-    memset(plaintext, '\0', sizeof(plaintext));
+    char *inputText;
+    char *outputText;
 
-    des.generateKey(key1);
-    des.generateKey(key2);
-    des.generateKey(key3);
-
-    des.tripleDESEncrypt(ciphertext, init, key1, key2, key3);
-
-    printf ("ciphertext: \n");
-    
-    int i;
-    for (i = 0; i < 16; ++i)
+    if (argc < 6)
     {
-        printf("%c", ciphertext[i]);
+        cerr << "Missing arguments" << endl;
+        return 1;
     }
-    printf("\n");
 
-    des.tripleDESDecrypt(plaintext, ciphertext, key1, key2, key3);
-    
-    printf ("plaintext: \n");
-    for (i = 0; i < 16; ++i)
+    if (strlen(argv[2]) != 8) 
     {
-        printf("%c", plaintext[i]);
+        cerr << "Key1 is not 8 bytes long" << endl;
+        return 1;
     }
-    printf("\n");
+    if (strlen(argv[3]) != 8) 
+    {
+        cerr << "Key2 is not 8 bytes long" << endl;
+        return 1;
+    }
+    if (strlen(argv[4]) != 8) 
+    {
+        cerr << "Key3 is not 8 bytes long" << endl;
+        return 1;
+    } 
 
-    if (strncmp(init, plaintext, 16) == 0)
-        printf ("EYYOO\n");
+    key1 = argv[2];
+    key2 = argv[3];
+    key3 = argv[4];
+
+    int length = strlen(argv[5]);
+
+    while (length++ % 8 != 0);
+
+    inputText = new char[length];
+    memset(inputText, '\0', length-1);
+    strcpy(inputText, argv[5]);
+    
+    outputText = new char[length];
+
+    if (strcmp(argv[1], "encrypt") == 0)
+    {
+        des.tripleDESEncrypt(outputText, inputText, key1, key2, key3);
+        printf ("ciphertext: \n");
+        for (int i = 0; i < 16; ++i)
+        {
+            printf("%c", outputText[i]);
+        }
+        printf("\n");
+    }
+    else if (strcmp(argv[1], "decrypt") == 0)
+    {
+        des.tripleDESDecrypt(outputText, inputText, key1, key2, key3);
+        printf ("plaintext: \n");
+    
+        for (int i = 0; i < 16; ++i)
+        {
+            printf("%c", outputText[i]);
+        }
+        printf("\n");
+    }
+    else
+    {
+        cerr << "Should be: ./DES <encrypt/decrypt> key1 key2 key3 text" << endl;
+    }
+
+    delete inputText;
+    delete outputText;
 
     return 0;
 }
