@@ -6,5 +6,6 @@
 
 ###CLI
 
-encryption > ./des encrypt Key1 Key2 Key3 plaintext
-decryption > ./des decrypt Key1 Key2 Key3 ciphertext
+> ./des encrypt Key1 Key2 Key3 plaintext
+
+> ./des decrypt Key1 Key2 Key3 ciphertext
