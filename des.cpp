@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <string.h>
+#include <ctime>
+#include <sys/time.h>
 #include "des.h"
 
 using namespace std;
@@ -17,6 +19,7 @@ using namespace std;
 #define MODE_DECRYPTION 1
 
 #define DEBUG 0 
+#define PERFORMANCE_TESTING 0
 
 static const
 char PCI[] = {57, 49, 41, 33, 25, 17,  9, 
@@ -139,6 +142,16 @@ DES::DES()
 
 DES::~DES()
 {
+}
+
+static void generateRandomBlocks(char *output, int blocks)
+{
+    char temp[2];
+    for (int i = 0; i < blocks*8; ++i) 
+    {
+        sprintf(temp, "%d", rand()%256);
+        output[i] = temp[0];
+    }
 }
 
 void DES::generateKey(char* key)
@@ -674,6 +687,46 @@ void DES::tripleDESDecrypt(char *plaintext, char *ciphertext, char *key1, char *
 #endif
 }
 
+#if PERFORMANCE_TESTING == 1
+int main(int argc, char *argv[])
+{
+    DES des;
+    char key1[8];
+    char key2[8];
+    char key3[8];
+
+    int times[7] = {4, 8, 16, 32, 64, 128, 256};
+
+    struct timeval tv;
+
+    des.generateKey(key1);
+    des.generateKey(key2);
+    des.generateKey(key3);
+
+    for (int index = 6; index >= 0; --index)
+    {
+        int blocks = times[index];
+        char input[blocks*8 + 1];
+        char output[blocks*8 + 1];
+    
+        generateRandomBlocks(input, blocks);
+
+        gettimeofday(&tv, NULL);
+        unsigned long time_in_micros_a = 1000000 * tv.tv_sec + tv.tv_usec;
+
+        des.tripleDESEncrypt(output, input, key1, key2, key3);
+
+        gettimeofday(&tv, NULL);
+        unsigned long time_in_micros_b = 1000000 * tv.tv_sec + tv.tv_usec;
+
+        cout << "Time: " << time_in_micros_b - time_in_micros_a << " us" << endl;
+    }
+
+    return 0;
+}
+
+#else
+
 int main(int argc, char *argv[])
 {
     DES des;
@@ -761,4 +814,5 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+#endif
 
